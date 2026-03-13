@@ -1,0 +1,277 @@
+# 🍃 MongoDB + PHP — Guía completa
+
+> Conexión · CRUD · Documentos anidados · Errores frecuentes
+
+---
+
+## 📦 1. Setup obligatorio
+
+### Arrancar el servidor MongoDB
+```bash
+& "C:\Program Files\MongoDB\Server\8.2\bin\mongod.exe" --dbpath C:\mongodb\data
+```
+
+### Instalar la librería PHP (una sola vez por proyecto)
+```bash
+composer require mongodb/mongodb
+```
+Esto crea la carpeta `vendor/` con el archivo `vendor/autoload.php`.
+
+> ⚠️ **Sin `vendor/autoload.php` nada funciona.** Es el primer `require` de todos los archivos.
+
+---
+
+## 🔌 2. Conexión
+
+Siempre al principio de cada archivo PHP:
+
+```php
+<?php
+require 'vendor/autoload.php';
+
+use MongoDB\Client;
+use MongoDB\BSON\ObjectId;   // necesario para buscar/editar/borrar por _id
+
+// Conectar con el servidor
+$client = new Client("mongodb://localhost:27017");
+
+// Seleccionar base de datos (se crea sola si no existe)
+$db = $client->Videojuegos;
+
+// Seleccionar colección (= tabla en SQL)
+$collection = $db->Juegos;
+```
+
+---
+
+## ➕ 3. INSERT — `insertOne()`
+
+```php
+$documento = [
+    "titulo"            => "The Witcher 3",
+    "precio"            => (float)$_POST["precio"],    // cast a float
+    "fecha_lanzamiento" => "2015-05-19",
+    "genero"            => "RPG",
+    "pegi"              => (int)$_POST["pegi"],         // cast a int
+    "motor"             => "REDengine 3",
+];
+
+$resultado = $collection->insertOne($documento);
+echo "ID insertado: " . $resultado->getInsertedId();
+```
+
+> 💡 Solo incluir en el array los campos que tengan valor (el código original usa `if ($campo !== "") { $documento["campo"] = $campo; }`).
+
+---
+
+## 🔍 4. SELECT — `find()` y `findOne()`
+
+```php
+// Todos los documentos
+$cursor = $collection->find();
+foreach ($cursor as $juego) {
+    if (isset($juego["titulo"])) echo "Título: " . $juego["titulo"] . "<br>";
+    if (isset($juego["precio"])) echo "Precio: " . $juego["precio"] . "<br>";
+}
+
+// Buscar uno por campo
+$juego = $collection->findOne(["titulo" => $tituloBuscado]);
+
+// Buscar uno por ID  ← necesita ObjectId
+$juego = $collection->findOne(["_id" => new ObjectId($id)]);
+
+// Mostrar campo solo si existe (siempre usar isset)
+if (isset($juego["precio"])) echo "Precio: " . $juego["precio"];
+```
+
+---
+
+## ✏️ 5. UPDATE — `updateOne()`
+
+```php
+// Por ID
+$resultado = $collection->updateOne(
+    ["_id" => new ObjectId($id)],
+    ['$set' => ["precio" => 19.99, "genero" => "Acción-RPG"]]
+);
+
+// Por título
+$resultado = $collection->updateOne(
+    ["titulo" => $tituloBuscado],
+    ['$set' => ["precio" => 19.99]]
+);
+
+echo $resultado->getModifiedCount();  // cuántos se modificaron
+echo $resultado->getMatchedCount();   // cuántos coincidieron con el filtro
+```
+
+> ⚠️ **`'$set'` va entre comillas simples** — si escribes `"$set"` PHP lo trata como variable y falla.
+
+---
+
+## 🗑️ 6. DELETE — `deleteOne()`
+
+```php
+// Por ID
+$resultado = $collection->deleteOne(["_id" => new ObjectId($id)]);
+
+// Por título
+$resultado = $collection->deleteOne(["titulo" => $tituloBuscado]);
+
+echo $resultado->getDeletedCount();   // cuántos se borraron
+```
+
+---
+
+## 📄 7. Documentos anidados
+
+Cuando un documento tiene **subdocumentos** (objetos dentro) o **arrays de objetos**:
+
+```php
+foreach ($cursor as $pedido) {
+
+    echo $pedido["numero_pedido"];
+
+    // Subdocumento (objeto anidado)
+    if (isset($pedido["cliente"])) {
+        $cliente = $pedido["cliente"];
+        if (isset($cliente["nombre"])) echo $cliente["nombre"];
+        if (isset($cliente["correo"])) echo $cliente["correo"];
+    }
+
+    // Array de objetos → iterar con foreach
+    if (isset($pedido["productos"]) && is_iterable($pedido["productos"])) {
+        foreach ($pedido["productos"] as $producto) {
+            if (isset($producto["nombre"]))    echo $producto["nombre"];
+            if (isset($producto["precio"]))    echo $producto["precio"];
+            if (isset($producto["cantidad"]))  echo $producto["cantidad"];
+        }
+    }
+}
+```
+
+---
+
+## ⚙️ 8. Patrón formulario (detectar la acción del POST)
+
+```php
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $accion = $_POST["accion"] ?? "";
+
+    if ($accion === "insertar")   { /* insertOne(...) */ }
+    if ($accion === "actualizar") { /* updateOne(...) */ }
+    if ($accion === "eliminar")   { /* deleteOne(...)  */ }
+}
+```
+
+Cada formulario HTML lleva un campo oculto que identifica la acción:
+
+```html
+<form method="post">
+    <input type="hidden" name="accion" value="insertar">
+    <!-- resto de campos -->
+    <button type="submit">Insertar</button>
+</form>
+```
+
+---
+
+## 📋 9. Resumen de métodos CRUD
+
+| Operación | Método PHP | Resultado útil | Equivalente SQL |
+|-----------|-----------|----------------|-----------------|
+| INSERT | `insertOne($doc)` | `getInsertedId()` | `INSERT INTO` |
+| SELECT todos | `find()` | cursor → `foreach` | `SELECT *` |
+| SELECT uno | `findOne($filtro)` | documento directo | `SELECT ... LIMIT 1` |
+| UPDATE | `updateOne($filtro, ['$set'=>$datos])` | `getModifiedCount()` | `UPDATE ... SET` |
+| DELETE | `deleteOne($filtro)` | `getDeletedCount()` | `DELETE FROM` |
+
+---
+
+## 🔑 10. Diferencia entre los dos archivos CRUD
+
+| Archivo | Busca/edita/borra por | Necesita |
+|---------|----------------------|----------|
+| `crudCompleto.php` | `_id` (ObjectId) | `use MongoDB\BSON\ObjectId;` |
+| `buscarPorTitulo.php` | `titulo` (string) | Solo `use MongoDB\Client;` |
+
+```php
+// crudCompleto.php — filtro por ID
+["_id" => new ObjectId($id)]
+
+// buscarPorTitulo.php — filtro por título
+["titulo" => $tituloBuscado]
+```
+
+---
+
+## 🚨 11. Errores típicos en examen
+
+| Error | Consecuencia |
+|-------|-------------|
+| Olvidar `require 'vendor/autoload.php'` | Error fatal — nada funciona |
+| `$set` sin comillas simples: `'$set'` | PHP lo trata como variable |
+| Filtrar por `_id` sin `new ObjectId($id)` | No encuentra el documento |
+| No usar `isset()` antes de hacer `echo` | Warning de campo indefinido |
+| MongoDB server no está corriendo | `Connection refused` |
+| Falta `use MongoDB\BSON\ObjectId;` | `Class ObjectId not found` |
+
+---
+
+## 🗂️ Archivos de este ejercicio
+
+| Archivo | Descripción |
+|---------|-------------|
+| `conexionMongoDB.php` | Conexión básica + SELECT con comentarios explicativos |
+| `crudCompleto.php` | CRUD completo usando `_id` (ObjectId) |
+| `buscarPorTitulo.php` | CRUD completo usando el campo `titulo` |
+| `mostrarCollectionCompleta.php` | Muestra documentos con subdocumentos y arrays |
+| `composer.json` | Dependencia `mongodb/mongodb` |
+| `datos.php` | `phpinfo()` para comprobar la versión de PHP |
+
+---
+
+## 🚀 Plantilla mínima copia-pega
+
+```php
+<?php
+require 'vendor/autoload.php';
+use MongoDB\Client;
+use MongoDB\BSON\ObjectId;
+
+$client     = new Client("mongodb://localhost:27017");
+$db         = $client->MiBaseDatos;
+$collection = $db->MiColeccion;
+
+// INSERT
+$collection->insertOne(["campo" => "valor", "numero" => 42]);
+
+// SELECT todos
+foreach ($collection->find() as $doc) {
+    if (isset($doc["campo"])) echo $doc["campo"];
+}
+
+// SELECT uno por campo
+$doc = $collection->findOne(["campo" => "valor"]);
+
+// SELECT uno por ID
+$doc = $collection->findOne(["_id" => new ObjectId($id)]);
+
+// UPDATE por ID
+$collection->updateOne(
+    ["_id" => new ObjectId($id)],
+    ['$set' => ["campo" => "nuevo valor"]]
+);
+
+// UPDATE por campo
+$collection->updateOne(
+    ["campo" => "valor"],
+    ['$set' => ["campo" => "nuevo valor"]]
+);
+
+// DELETE por ID
+$collection->deleteOne(["_id" => new ObjectId($id)]);
+
+// DELETE por campo
+$collection->deleteOne(["campo" => "valor"]);
+```
