@@ -46,23 +46,23 @@
 
     <section id="post-simple" class="tab-section">
       <h2>POST con párametros simples</h2>
-      <form action="">
+      <form action="" id="form_post">
         <label for="nombre">Ingresa tu nombre</label>
         <input type="text" id="nombre" name="nombre" />
         <label for="edad">Ingresa tu edad</label>
         <input type="number" id="edad" name="edad" />
         <button type="submit">Enviar</button>
       </form>
-      <p class="respuesta"></p>
+      <p id="respuesta01"></p>
     </section>
 
     <section id="get" class="tab-section">
       <h2>GET</h2>
       <form action="">
         <label for="nombre">Ingresa tu nombre</label>
-        <input type="text" id="nombre" name="nombre" />
+        <input type="text" id="nombre2" name="nombre2" />
         <label for="edad">Ingresa tu edad</label>
-        <input type="number" id="edad" name="edad" />
+        <input type="number" id="edad2" name="edad2" />
         <button type="submit">Enviar</button>
       </form>
       <p class="respuesta"></p>
@@ -72,9 +72,9 @@
       <h2>POST con JSON</h2>
       <form action="">
         <label for="nombre">Ingresa tu nombre</label>
-        <input type="text" id="nombre" name="nombre" />
+        <input type="text" id="nombre3" name="nombre3" />
         <label for="edad">Ingresa tu edad</label>
-        <input type="number" id="edad" name="edad" />
+        <input type="number" id="edad3" name="edad3" />
         <button type="submit">Enviar</button>
       </form>
       <p class="respuesta"></p>
@@ -83,9 +83,9 @@
       <h2>POST con JSON Y RESPUESTA EN JSON</h2>
       <form action="">
         <label for="nombre">Ingresa tu nombre</label>
-        <input type="text" id="nombre" name="nombre" />
+        <input type="text" id="nombre4" name="nombre4" />
         <label for="edad">Ingresa tu edad</label>
-        <input type="number" id="edad" name="edad" />
+        <input type="number" id="edad4" name="edad4" />
         <button type="submit">Enviar</button>
       </form>
       <p class="respuesta"></p>
@@ -94,9 +94,9 @@
       <h2>COOKIE</h2>
       <form action="">
         <label for="nombre">Ingresa tu nombre</label>
-        <input type="text" id="nombre" name="nombre" />
+        <input type="text" id="nombre5" name="nombre5" />
         <label for="edad">Ingresa tu edad</label>
-        <input type="number" id="edad" name="edad" />
+        <input type="number" id="edad5" name="edad5" />
         <button type="submit">Enviar</button>
       </form>
       <p class="respuesta"></p>
@@ -105,9 +105,9 @@
       <h2>COOKIE RESPUESTA FORMATO COOKIE</h2>
       <form action="">
         <label for="nombre">Ingresa tu nombre</label>
-        <input type="text" id="nombre" name="nombre" />
+        <input type="text" id="nombre6" name="nombre6" />
         <label for="edad">Ingresa tu edad</label>
-        <input type="number" id="edad" name="edad" />
+        <input type="number" id="edad6" name="edad6" />
         <button type="submit">Enviar</button>
       </form>
       <p class="respuesta"></p>
@@ -176,6 +176,26 @@
       );
 
       myTabs.render(document.getElementById("tabsContainer"));
+
+      /**
+       * 1. Enviamos los datos por método POST
+       */
+      document
+        .getElementById("form_post")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const datos = new FormData(e.target);
+          datos.append("accion", "post_form");
+
+          const respuesta = await fetch("procesar1.php", {
+            method: "POST",
+            body: new URLSearchParams(datos),
+          });
+
+          document.getElementById("respuesta01").innerText =
+            await respuesta.text();
+        });
     </script>
   </body>
 </html>
