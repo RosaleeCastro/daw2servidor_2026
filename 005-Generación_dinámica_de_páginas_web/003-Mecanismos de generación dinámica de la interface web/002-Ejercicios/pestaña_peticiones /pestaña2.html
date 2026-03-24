@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Pestañas Simples sin Map</title>
+
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #f5f5f5;
+        padding: 20px;
+      }
+
+      /* Botones de pestañas */
+      .tabs {
+        margin-bottom: 20px;
+      }
+
+      .tab-buttons button {
+        padding: 10px;
+        margin-right: 5px;
+        cursor: pointer;
+        background: #ddd;
+        border: 1px solid #777;
+        border-radius: 5px;
+      }
+
+      .tab-buttons button:hover {
+        background: #ccc;
+      }
+
+      /* Secciones */
+      .tab-section {
+        display: none;
+        background: white;
+        padding: 20px;
+        border-radius: 5px;
+        border: 1px solid #333;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Pestañas con JavaScript</h1>
+
+    <div id="tabsContainer"></div>
+
+    <section id="post-simple" class="tab-section">
+      <h2>POST con párametros simples</h2>
+      <form action="">
+        <label for="nombre">Ingresa tu nombre</label>
+        <input type="text" id="nombre" name="nombre" />
+        <label for="edad">Ingresa tu edad</label>
+        <input type="number" id="edad" name="edad" />
+        <button type="submit">Enviar</button>
+      </form>
+      <p class="respuesta"></p>
+    </section>
+
+    <section id="get" class="tab-section">
+      <h2>GET</h2>
+      <form action="">
+        <label for="nombre">Ingresa tu nombre</label>
+        <input type="text" id="nombre" name="nombre" />
+        <label for="edad">Ingresa tu edad</label>
+        <input type="number" id="edad" name="edad" />
+        <button type="submit">Enviar</button>
+      </form>
+      <p class="respuesta"></p>
+    </section>
+
+    <section id="post-json" class="tab-section">
+      <h2>POST con JSON</h2>
+      <form action="">
+        <label for="nombre">Ingresa tu nombre</label>
+        <input type="text" id="nombre" name="nombre" />
+        <label for="edad">Ingresa tu edad</label>
+        <input type="number" id="edad" name="edad" />
+        <button type="submit">Enviar</button>
+      </form>
+      <p class="respuesta"></p>
+    </section>
+    <section id="post-json-respuesta-json" class="tab-section">
+      <h2>POST con JSON Y RESPUESTA EN JSON</h2>
+      <form action="">
+        <label for="nombre">Ingresa tu nombre</label>
+        <input type="text" id="nombre" name="nombre" />
+        <label for="edad">Ingresa tu edad</label>
+        <input type="number" id="edad" name="edad" />
+        <button type="submit">Enviar</button>
+      </form>
+      <p class="respuesta"></p>
+    </section>
+    <section id="cookie" class="tab-section">
+      <h2>COOKIE</h2>
+      <form action="">
+        <label for="nombre">Ingresa tu nombre</label>
+        <input type="text" id="nombre" name="nombre" />
+        <label for="edad">Ingresa tu edad</label>
+        <input type="number" id="edad" name="edad" />
+        <button type="submit">Enviar</button>
+      </form>
+      <p class="respuesta"></p>
+    </section>
+    <section id="cookie_respuesta_cookie" class="tab-section">
+      <h2>COOKIE RESPUESTA FORMATO COOKIE</h2>
+      <form action="">
+        <label for="nombre">Ingresa tu nombre</label>
+        <input type="text" id="nombre" name="nombre" />
+        <label for="edad">Ingresa tu edad</label>
+        <input type="number" id="edad" name="edad" />
+        <button type="submit">Enviar</button>
+      </form>
+      <p class="respuesta"></p>
+    </section>
+
+    <script>
+      class Tabs {
+        constructor(tabNames, sectionIds) {
+          this.tabNames = tabNames;
+          this.sectionIds = sectionIds;
+
+          this.container = document.createElement("div");
+          this.container.className = "tabs";
+
+          this.btnArea = document.createElement("div");
+          this.btnArea.className = "tab-buttons";
+
+          this.container.appendChild(this.btnArea);
+
+          this.createButtons();
+          this.showTab(0); // Mostrar primera pestaña
+        }
+
+        createButtons() {
+          this.tabNames.forEach((name, index) => {
+            const btn = document.createElement("button");
+            btn.textContent = name;
+            btn.onclick = () => this.showTab(index);
+            this.btnArea.appendChild(btn);
+          });
+        }
+
+        showTab(index) {
+          // Ocultar todas las secciones
+          document
+            .querySelectorAll(".tab-section")
+            .forEach((sec) => (sec.style.display = "none"));
+
+          // Mostrar la sección correspondiente
+          const sectionId = this.sectionIds[index];
+          document.getElementById(sectionId).style.display = "block";
+        }
+
+        render(container) {
+          container.appendChild(this.container);
+        }
+      }
+
+      const myTabs = new Tabs(
+        [
+          "POST-SIMPLE",
+          "GET",
+          "POST - JSON",
+          "POST-JSON RESPONSE JSON",
+          "COOKIE",
+          "COOKIE RESPONSE COOKIE",
+        ],
+        [
+          "post-simple",
+          "get",
+          "post-json",
+          "post-json-respuesta-json",
+          "cookie",
+          "cookie_respuesta_cookie",
+        ], // IDs de las secciones
+      );
+
+      myTabs.render(document.getElementById("tabsContainer"));
+    </script>
+  </body>
+</html>
