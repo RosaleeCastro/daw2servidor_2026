@@ -10,4 +10,26 @@ if(isset($_POST["accion"]) && $_POST["accion"] === "post_form"){
   exit;
 }
 
+//Peticion Get
+
+if(isset($_GET["accion"])&& $_GET["accion"]==="get_form"){
+  $nombre2 = $_GET["nombre2"] ?? "No se recibio";
+  $edad2 = $_GET["edad2"] ?? "tampoco se recibio edad";
+  echo "GET  recibido  Nombre = $nombre2   Edad = $edad2";
+
+}
+// -------------------------------------------------------------
+// 3) POST con JSON → Respuesta en texto
+// -------------------------------------------------------------
+$rawJSON = file_get_contents("php://input");
+$data = json_decode($rawJSON, true);
+
+if (isset($data["accion"]) && $data["accion"] === "post_json") {
+    $nombre = $data["persona"]["nombre"] ?? "Sin nombre";
+    $edad = $data["persona"]["edad"] ?? -1;
+
+       echo "Nombre :  $nombre, tienes $edad años";
+    exit;
+}
+
 ?>

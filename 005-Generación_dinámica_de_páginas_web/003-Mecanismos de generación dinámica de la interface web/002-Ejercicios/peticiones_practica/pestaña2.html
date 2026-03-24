@@ -58,37 +58,37 @@
 
     <section id="get" class="tab-section">
       <h2>GET</h2>
-      <form action="">
+      <form action="" id="form_get">
         <label for="nombre">Ingresa tu nombre</label>
         <input type="text" id="nombre2" name="nombre2" />
         <label for="edad">Ingresa tu edad</label>
         <input type="number" id="edad2" name="edad2" />
         <button type="submit">Enviar</button>
       </form>
-      <p class="respuesta"></p>
+      <p id="respuesta2"></p>
     </section>
 
     <section id="post-json" class="tab-section">
       <h2>POST con JSON</h2>
-      <form action="">
+      <form action="" id="form_post_json">
         <label for="nombre">Ingresa tu nombre</label>
         <input type="text" id="nombre3" name="nombre3" />
         <label for="edad">Ingresa tu edad</label>
         <input type="number" id="edad3" name="edad3" />
         <button type="submit">Enviar</button>
       </form>
-      <p class="respuesta"></p>
+      <p id="respuesta3"></p>
     </section>
     <section id="post-json-respuesta-json" class="tab-section">
       <h2>POST con JSON Y RESPUESTA EN JSON</h2>
-      <form action="">
+      <form action="" id="form_json_json">
         <label for="nombre">Ingresa tu nombre</label>
         <input type="text" id="nombre4" name="nombre4" />
         <label for="edad">Ingresa tu edad</label>
         <input type="number" id="edad4" name="edad4" />
         <button type="submit">Enviar</button>
       </form>
-      <p class="respuesta"></p>
+      <p id="respuesta4"></p>
     </section>
     <section id="cookie" class="tab-section">
       <h2>COOKIE</h2>
@@ -195,6 +195,91 @@
 
           document.getElementById("respuesta01").innerText =
             await respuesta.text();
+        });
+
+      /*
+       *2) Enviar número por GET
+       */
+      document
+        .getElementById("form_get")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const datos = new FormData(e.target);
+          const nombre2 = datos.get("nombre2");
+          const edad2 = datos.get("edad2");
+
+          // Se envía en la URL
+          const respuesta2 = await fetch(
+            "procesar1.php?accion=get_form&nombre2=" +
+              encodeURIComponent(nombre2) +
+              "&edad2=" +
+              encodeURIComponent(edad2),
+          );
+
+          document.getElementById("respuesta2").innerText =
+            await respuesta2.text();
+        });
+
+      // --------------------------------------------------------------------
+      // 3) Enviar JSON por POST
+      // --------------------------------------------------------------------
+      document
+        .getElementById("form_post_json")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const datos = new FormData(e.target);
+
+          const respuesta = await fetch("procesar1.php", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              accion: "post_json",
+              persona: {
+                nombre: datos.get("nombre3"),
+                edad: datos.get("edad3"),
+              },
+            }),
+          });
+
+          document.getElementById("respuesta3").innerText =
+            await respuesta.text();
+        });
+
+      // --------------------------------------------------------------------
+      // 4) Enviar JSON por POST y recibir JSON desde PHP, pero mostrando solo el mensaje
+      // --------------------------------------------------------------------
+      document
+        .getElementById("form_post_json_json")
+        .addEventListener("click", async () => {
+          const nombre = prompt("Introduce tu nombre:");
+          const edad = prompt("Introduce tu edad:");
+
+          const datos = { nombre: nombre, edad: parseInt(edad) };
+
+          const respuesta = await fetch("procesar.php", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            body: JSON.stringify({
+              accion: "json_datos_json",
+              persona: datos,
+            }),
+          });
+
+          // Recibir JSON del servidor
+          const json = await respuesta.json();
+
+          // Mostrar solo lo que nos interesa
+          const saludo = json.saludo;
+          const mensaje = json.mensaje;
+
+          document.getElementById("resultado").innerText =
+            saludo + "\n" + mensaje;
         });
     </script>
   </body>
