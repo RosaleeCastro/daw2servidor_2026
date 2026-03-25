@@ -92,14 +92,14 @@
     </section>
     <section id="cookie" class="tab-section">
       <h2>COOKIE</h2>
-      <form action="">
-        <label for="nombre">Ingresa tu nombre</label>
+      <form action="" id="form_cookie">
+        <label for="nombre5">Ingresa tu nombre</label>
         <input type="text" id="nombre5" name="nombre5" />
-        <label for="edad">Ingresa tu edad</label>
+        <label for="edad5">Ingresa tu edad</label>
         <input type="number" id="edad5" name="edad5" />
         <button type="submit">Enviar</button>
       </form>
-      <p class="respuesta"></p>
+      <p class="respuesta5"></p>
     </section>
     <section id="cookie_respuesta_cookie" class="tab-section">
       <h2>COOKIE RESPUESTA FORMATO COOKIE</h2>
@@ -252,14 +252,13 @@
       // 4) Enviar JSON por POST y recibir JSON desde PHP, pero mostrando solo el mensaje
       // --------------------------------------------------------------------
       document
-        .getElementById("form_post_json_json")
-        .addEventListener("click", async () => {
-          const nombre = prompt("Introduce tu nombre:");
-          const edad = prompt("Introduce tu edad:");
+        .getElementById("form_json_json")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
 
-          const datos = { nombre: nombre, edad: parseInt(edad) };
+          const datos = new FormData(e.target);
 
-          const respuesta = await fetch("procesar.php", {
+          const respuesta = await fetch("procesar1.php", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -267,7 +266,10 @@
             },
             body: JSON.stringify({
               accion: "json_datos_json",
-              persona: datos,
+              persona: {
+                nombre: datos.get("nombre4"),
+                edad: datos.get("edad4"),
+              },
             }),
           });
 
@@ -275,12 +277,22 @@
           const json = await respuesta.json();
 
           // Mostrar solo lo que nos interesa
-          const saludo = json.saludo;
-          const mensaje = json.mensaje;
+          const nombre = json.nombre;
+          const edad = json.edad;
 
-          document.getElementById("resultado").innerText =
-            saludo + "\n" + mensaje;
+          document.getElementById("respuesta4").innerText =
+            nombre + "\n tu edad es" + edad;
         });
+      // --------------------------------------------------------------------
+      // 5) Cookie tipo 1
+      // --------------------------------------------------------------------
+      function setCookie(nombre, valor, dias) {
+        const fecha = new Date();
+        fecha.setTime(fecha.getTime() + dias * 24 * 60 * 60 * 1000);
+        const expiracion = "expires=" + fecha.toUTCString();
+        document.cookie =
+          nombre + "=" + encodeURIComponent(valor) + expiracion + ";path=/";
+      }
     </script>
   </body>
 </html>

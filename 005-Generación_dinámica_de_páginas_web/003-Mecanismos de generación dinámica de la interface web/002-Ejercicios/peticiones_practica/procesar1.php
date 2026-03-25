@@ -32,4 +32,27 @@ if (isset($data["accion"]) && $data["accion"] === "post_json") {
     exit;
 }
 
+// -------------------------------------------------------------
+// 4) POST con JSON → Respuesta en JSON (nuevo botón)
+// -------------------------------------------------------------
+if (isset($data["accion"]) && $data["accion"] === "json_datos_json") {
+
+    header("Content-Type: application/json; charset=utf-8");
+
+    $nombre = $data["persona"]["nombre"] ?? "Sin nombre";
+    $edad = $data["persona"]["edad"] ?? -1;
+
+
+    // Construimos una respuesta JSON
+    $respuesta = [
+        "nombre" => $nombre,
+        "edad"   => $edad,
+        
+    ];
+
+    echo json_encode($respuesta, JSON_PRETTY_PRINT);
+    exit;
+}
+
+echo "No se ha reconocido la petición.";
 ?>
