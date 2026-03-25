@@ -286,7 +286,7 @@
       // --------------------------------------------------------------------
       // 5) Cookie tipo 1
       // --------------------------------------------------------------------
-      
+
       /*Función para crear una cookie*/
 
       function setCookie(nombre, valor, dias) {
@@ -298,16 +298,52 @@
       }
 
       /*función para leer una cookie*/
-      function getCookie(nombre){
+
+      function getCookie(nombre) {
         const nombreEQ = nombre + "=";
         const cookies = document.cookie.split(";");
-        for (let i = 0; i<cookies.length; i++){
+        for (let i = 0; i < cookies.length; i++) {
           let c = cookie[i].trim();
-          if(c.indexOf(nombreEQ)=== 0){
-           return decodeURIComponent(c.substring(nombreEQ.length)); 
-          };
+          if (c.indexOf(nombreEQ) === 0) {
+            return decodeURIComponent(c.substring(nombreEQ.length));
+          }
         }
       }
+
+      /* funcion para borrar una cookie */
+      function deleteCookie() {
+        document.cookie =
+          nombre + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      }
+
+      // Servidor lee las cookies y responde texto
+
+      document
+        .getElementById("form_cookie")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const datos = e.target;
+          const nombre = datos.nombre5.value;
+          const edad = datos.edad5.value;
+
+          //validadmos que no esten vacios los datos
+          if (!nombre5 || !edad5) {
+            document.getElementById("respuesta5").innerText = "Faltan datos.";
+            return;
+          }
+          //creamos las cookies
+          setCookie("nombre", nombre, 1);
+          setCookie("edad", edad, 1);
+
+          //Llamada al servidor
+          const respuesta = await fetch("cookies1.php?accion=leer_cookie", {
+            method: "GET",
+            credentials: "same-origin",
+          });
+
+          const texto = await respuesta.text();
+          document.getElementById("respuesta5").innerText = texto;
+        });
     </script>
   </body>
 </html>
