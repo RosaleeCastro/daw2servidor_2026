@@ -99,18 +99,18 @@
         <input type="number" id="edad5" name="edad5" />
         <button type="submit">Enviar</button>
       </form>
-      <p class="respuesta5"></p>
+      <p id="respuesta5"></p>
     </section>
     <section id="cookie_respuesta_cookie" class="tab-section">
       <h2>COOKIE RESPUESTA FORMATO COOKIE</h2>
-      <form action="">
+      <form action="" id="form_cookie_cookie">
         <label for="nombre">Ingresa tu nombre</label>
         <input type="text" id="nombre6" name="nombre6" />
         <label for="edad">Ingresa tu edad</label>
         <input type="number" id="edad6" name="edad6" />
         <button type="submit">Enviar</button>
       </form>
-      <p class="respuesta"></p>
+      <p id="respuesta6"></p>
     </section>
 
     <script>
@@ -283,38 +283,49 @@
           document.getElementById("respuesta4").innerText =
             nombre + "\n tu edad es" + edad;
         });
+
       // --------------------------------------------------------------------
-      // 5) Cookie tipo 1
-      // --------------------------------------------------------------------
+      // Funciones de cookies
+      // ------------------------------------------------------------------
 
       /*Función para crear una cookie*/
-
       function setCookie(nombre, valor, dias) {
         const fecha = new Date();
-        fecha.setTime(fecha.getTime() + dias * 24 * 60 * 60 * 1000);
+        fecha.setTime(fecha.getTime() + dias * 24 * 60 * 60 * 1000); // duración en días
         const expiracion = "expires=" + fecha.toUTCString();
         document.cookie =
-          nombre + "=" + encodeURIComponent(valor) + expiracion + ";path=/";
+          nombre +
+          "=" +
+          encodeURIComponent(valor) +
+          ";" +
+          expiracion +
+          ";path=/";
       }
 
       /*función para leer una cookie*/
 
+      // Función para leer una cookie
       function getCookie(nombre) {
         const nombreEQ = nombre + "=";
         const cookies = document.cookie.split(";");
         for (let i = 0; i < cookies.length; i++) {
-          let c = cookie[i].trim();
+          let c = cookies[i].trim();
           if (c.indexOf(nombreEQ) === 0) {
             return decodeURIComponent(c.substring(nombreEQ.length));
           }
         }
+        return null;
       }
 
-      /* funcion para borrar una cookie */
-      function deleteCookie() {
+      // Función para borrar una cookie
+      function deleteCookie(nombre) {
         document.cookie =
           nombre + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
       }
+
+      // --------------------------------------------------------------------
+      // 5) Cookie tipo 1
+      // --------------------------------------------------------------------
 
       // Servidor lee las cookies y responde texto
 
@@ -327,7 +338,7 @@
           const edad = datos.edad5.value;
 
           //validadmos que no esten vacios los datos
-          if (!nombre5 || !edad5) {
+          if (!nombre || !edad || edad === "" || nombre === "") {
             document.getElementById("respuesta5").innerText = "Faltan datos.";
             return;
           }
@@ -343,6 +354,54 @@
 
           const texto = await respuesta.text();
           document.getElementById("respuesta5").innerText = texto;
+        });
+
+      // --------------------------------------------------
+      // 6) Cokkie respone cookie  servidor crea una cookie y el cliente la usa para mostrar el mensaje
+      // --------------------------------------------------
+
+      document
+        .getElementById("form_cookie_cookie")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const datos = e.target;
+          const nombre = datos.nombre6.value;
+          const edad = datos.edad6.value;
+          const resultado = document.getElementById("respuesta6");
+
+          if (!nombre || !edad) {
+            resultado.innerText = "No se introdujo nombre.";
+            return;
+          }
+
+          // Creamos cookie en el cliente
+          setCookie("nombre", nombre, 1);
+          setCookie("edad", edad, 1);
+
+          // Pedimos al servidor que nos "devuelva" la info en forma de cookie (Set-Cookie)
+
+          const respuesta = await fetch(
+            "cookies1.php?accion=servidor_set_cookie",
+            {
+              method: "GET",
+              credentials: "same-origin",
+            },
+          );
+
+          // Leemos texto (opcional, solo informativo)
+          await respuesta.text();
+
+          // Ahora el navegador ya debería haber guardado la cookie enviada por PHP
+          const valorCookieServidor = getCookie("mensaje_servidor");
+
+          if (valorCookieServidor) {
+            resultado.innerText =
+              "Mensaje construido usando la cookie del servidor:\n" +
+              valorCookieServidor;
+          } else {
+            resultado.innerText =
+              "No se encontró la cookie 'mensaje_servidor'.";
+          }
         });
     </script>
   </body>
