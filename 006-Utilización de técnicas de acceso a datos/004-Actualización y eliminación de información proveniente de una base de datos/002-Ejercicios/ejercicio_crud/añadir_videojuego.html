@@ -3,70 +3,124 @@
   <head>
     <meta charset="UTF-8" />
     <title>Nuevo videojuego</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 30px auto;
+      }
+
+      form {
+        border: 1px solid #ccc;
+        padding: 20px;
+        border-radius: 8px;
+      }
+
+      .campo {
+        margin-bottom: 14px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: bold;
+      }
+
+      input,
+      select,
+      textarea,
+      button {
+        width: 100%;
+        padding: 8px;
+        box-sizing: border-box;
+      }
+
+      textarea {
+        resize: vertical;
+      }
+
+      button {
+        cursor: pointer;
+      }
+    </style>
   </head>
   <body>
-    <h1>Añadir videojuego</h1>
+    <h1>Añadir nuevo videojuego</h1>
 
     <form action="insertar_videojuego.php" method="POST">
-      <label for="titulo">Título:</label><br />
-      <input type="text" id="titulo" name="titulo" required /><br /><br />
+      <div class="campo">
+        <label for="titulo">Título</label>
+        <input type="text" id="titulo" name="titulo" required />
+      </div>
 
-      <label for="fecha_lanzamiento">Fecha de lanzamiento:</label><br />
-      <input
-        type="date"
-        id="fecha_lanzamiento"
-        name="fecha_lanzamiento"
-      /><br /><br />
+      <div class="campo">
+        <label for="fecha_lanzamiento">Fecha de lanzamiento</label>
+        <input type="date" id="fecha_lanzamiento" name="fecha_lanzamiento" />
+      </div>
 
-      <label for="pegi">PEGI:</label><br />
-      <input type="number" id="pegi" name="pegi" min="3" max="18" /><br /><br />
+      <div class="campo">
+        <label for="pegi">PEGI</label>
+        <input type="number" id="pegi" name="pegi" min="3" max="18" />
+      </div>
 
-      <label for="precio_base">Precio base:</label><br />
-      <input
-        type="number"
-        id="precio_base"
-        name="precio_base"
-        step="0.01"
-        min="0"
-      /><br /><br />
+      <div class="campo">
+        <label for="precio_base">Precio base</label>
+        <input
+          type="number"
+          id="precio_base"
+          name="precio_base"
+          step="0.01"
+          min="0"
+        />
+      </div>
 
-      <label for="motor">Motor:</label><br />
-      <input type="text" id="motor" name="motor" /><br /><br />
+      <div class="campo">
+        <label for="motor">Motor</label>
+        <input type="text" id="motor" name="motor" />
+      </div>
 
-      <label>
-        <input type="checkbox" name="es_multijugador" value="1" />
-        Es multijugador </label
-      ><br /><br />
+      <div class="campo">
+        <label for="es_multijugador">¿Es multijugador?</label>
+        <select id="es_multijugador" name="es_multijugador">
+          <option value="0">No</option>
+          <option value="1">Sí</option>
+        </select>
+      </div>
 
-      <label for="id_estudio">ID estudio:</label><br />
-      <input
-        type="number"
-        id="id_estudio"
-        name="id_estudio"
-        min="1"
-      /><br /><br />
+      <div class="campo">
+        <label for="id_estudio">Estudio</label>
+        <select id="id_estudio" name="id_estudio">
+          <option value="">-- Selecciona un estudio --</option>
+          <option value="1">Larian Studios</option>
+          <option value="2">FromSoftware</option>
+          <option value="3">CD PROJEKT RED</option>
+          <option value="4">Supergiant Games</option>
+          <option value="5">Mojang Studios</option>
+          <option value="6">MercurySteam</option>
+        </select>
+      </div>
 
-      <label for="id_juego_padre">ID juego padre:</label><br />
-      <input
-        type="number"
-        id="id_juego_padre"
-        name="id_juego_padre"
-        min="1"
-      /><br /><br />
+      <div class="campo">
+        <label for="id_juego_padre">Juego padre</label>
+        <select id="id_juego_padre" name="id_juego_padre">
+          <option value="">-- Ninguno --</option>
+          <option value="1">Baldur's Gate 3</option>
+          <option value="2">Elden Ring</option>
+          <option value="3">Cyberpunk 2077</option>
+          <option value="4">Hades</option>
+          <option value="5">Minecraft</option>
+          <option value="6">Hades II</option>
+          <option value="7">Proyecto Misterioso</option>
+          <option value="8">Metroid Dread</option>
+        </select>
+      </div>
 
-      <label for="descripcion">Descripción:</label><br />
-      <textarea
-        id="descripcion"
-        name="descripcion"
-        rows="4"
-        cols="40"
-      ></textarea
-      ><br /><br />
+      <div class="campo">
+        <label for="descripcion">Descripción</label>
+        <textarea id="descripcion" name="descripcion" rows="5"></textarea>
+      </div>
 
       <button type="submit">Guardar videojuego</button>
     </form>
-    <script>
-      
-    </script>
   </body>
 </html>

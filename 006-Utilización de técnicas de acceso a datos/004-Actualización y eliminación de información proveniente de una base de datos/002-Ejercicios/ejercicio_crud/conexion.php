@@ -17,8 +17,7 @@ try {
 
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-     $accion = $_POST["accion"] ?? "";
-
+    
 
  } catch (PDOException $e) {
     $mensaje = "Error: " . $e->getMessage();
