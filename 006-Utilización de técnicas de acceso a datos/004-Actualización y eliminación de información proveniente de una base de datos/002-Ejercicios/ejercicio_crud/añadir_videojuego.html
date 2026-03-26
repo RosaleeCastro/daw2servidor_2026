@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Nuevo videojuego</title>
+  </head>
+  <body>
+    <h1>Añadir videojuego</h1>
+
+    <form action="insertar_videojuego.php" method="POST">
+      <label for="titulo">Título:</label><br />
+      <input type="text" id="titulo" name="titulo" required /><br /><br />
+
+      <label for="fecha_lanzamiento">Fecha de lanzamiento:</label><br />
+      <input
+        type="date"
+        id="fecha_lanzamiento"
+        name="fecha_lanzamiento"
+      /><br /><br />
+
+      <label for="pegi">PEGI:</label><br />
+      <input type="number" id="pegi" name="pegi" min="3" max="18" /><br /><br />
+
+      <label for="precio_base">Precio base:</label><br />
+      <input
+        type="number"
+        id="precio_base"
+        name="precio_base"
+        step="0.01"
+        min="0"
+      /><br /><br />
+
+      <label for="motor">Motor:</label><br />
+      <input type="text" id="motor" name="motor" /><br /><br />
+
+      <label>
+        <input type="checkbox" name="es_multijugador" value="1" />
+        Es multijugador </label
+      ><br /><br />
+
+      <label for="id_estudio">ID estudio:</label><br />
+      <input
+        type="number"
+        id="id_estudio"
+        name="id_estudio"
+        min="1"
+      /><br /><br />
+
+      <label for="id_juego_padre">ID juego padre:</label><br />
+      <input
+        type="number"
+        id="id_juego_padre"
+        name="id_juego_padre"
+        min="1"
+      /><br /><br />
+
+      <label for="descripcion">Descripción:</label><br />
+      <textarea
+        id="descripcion"
+        name="descripcion"
+        rows="4"
+        cols="40"
+      ></textarea
+      ><br /><br />
+
+      <button type="submit">Guardar videojuego</button>
+    </form>
+    <script>
+      
+    </script>
+  </body>
+</html>

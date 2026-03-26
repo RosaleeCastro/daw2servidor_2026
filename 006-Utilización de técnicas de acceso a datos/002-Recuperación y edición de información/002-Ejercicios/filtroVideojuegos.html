@@ -1,8 +1,13 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+  <!-- Indicamos la codificación de caracteres para que se muestren bien tildes y símbolos -->
   <meta charset="UTF-8" />
+
+  <!-- Título que aparecerá en la pestaña del navegador -->
   <title>Filtro de videojuegos</title>
+
+  <!-- Estilos internos básicos para dar formato a la página -->
   <style>
     body { font-family: Arial, sans-serif; max-width: 900px; margin: 20px auto; }
     .fila { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
@@ -15,42 +20,56 @@
 </head>
 <body>
 
+  <!-- Título principal visible en la página -->
   <h2>Buscar videojuegos por precio y año</h2>
 
+  <!-- Fila del formulario para introducir el precio máximo -->
   <div class="fila">
     <label for="precio">Precio máximo (€):</label>
     <input id="precio" type="number" step="0.01" min="0" value="60" />
   </div>
 
+  <!-- Fila del formulario para introducir el año mínimo -->
   <div class="fila">
     <label for="anio">Año mínimo (posterior a):</label>
     <input id="anio" type="number" min="1970" max="2100" value="2020" />
   </div>
 
+  <!-- Botón que lanza la búsqueda -->
   <div class="fila">
     <button id="btnBuscar">Buscar</button>
   </div>
 
+  <!-- Zona para mostrar mensajes de estado o error -->
   <p id="estado"></p>
+
+  <!-- Zona donde se imprimen los resultados obtenidos -->
   <pre id="resultado">Pulsa “Buscar” para ver resultados…</pre>
 
 <script>
+// Añadimos un evento al botón para ejecutar la búsqueda al hacer clic.
 document.getElementById("btnBuscar").addEventListener("click", async () => {
+  // Leemos los valores escritos por el usuario en los inputs.
   const precio = document.getElementById("precio").value;
   const anio = document.getElementById("anio").value;
 
+  // Guardamos referencias a los elementos donde mostraremos mensajes y resultados.
   const estado = document.getElementById("estado");
   const resultado = document.getElementById("resultado");
 
+  // Reiniciamos el estado visual antes de hacer la petición.
   estado.className = "";
   estado.innerText = "Consultando servidor...";
   resultado.innerText = "";
 
-  // Construimos una fecha mínima a partir del año
-  // "posterior a 2020" -> fechaMin = "2020-12-31" para que cuente 2021 en adelante
+  // Construimos una fecha mínima completa a partir del año introducido.
+  // Si el usuario escribe 2020 y queremos "posterior a 2020",
+  // usamos 2020-12-31 para que el filtro devuelva juegos de 2021 en adelante.
   const fechaMin = `${anio}-12-31`;
 
   try {
+    // Enviamos una petición POST al archivo PHP que actúa como API.
+    // La información se manda en formato JSON.
     const resp = await fetch("videojuegos_api.php", {
       method: "POST",
       headers: {
@@ -64,8 +83,10 @@ document.getElementById("btnBuscar").addEventListener("click", async () => {
       })
     });
 
+    // Convertimos la respuesta del servidor a objeto JavaScript.
     const data = await resp.json();
 
+    // Si la respuesta HTTP no fue correcta, mostramos el error devuelto por la API.
     if (!resp.ok) {
       estado.className = "error";
       estado.innerText = "Error del servidor";
@@ -73,16 +94,20 @@ document.getElementById("btnBuscar").addEventListener("click", async () => {
       return;
     }
 
+    // Si todo ha ido bien, mostramos cuántos juegos se han encontrado.
     estado.innerText = `Resultados: ${data.total} juego(s)`;
 
-    // Mostrar resultados
+    // Si no hay coincidencias, avisamos al usuario y terminamos.
     if (data.total === 0) {
         resultado.innerText = "No hay juegos que cumplan el filtro.";
         return;
     }
 
+    // Construimos un texto con todos los juegos para mostrarlo en pantalla.
     let texto = "";
 
+    // Recorremos el array de juegos devuelto por la API
+    // y vamos concatenando cada línea con sus datos.
     data.juegos.forEach(function(j) {
     texto += "#" + j.id_videojuego +
              " | " + j.titulo +
@@ -91,10 +116,13 @@ document.getElementById("btnBuscar").addEventListener("click", async () => {
              "\n";
     });
 
+    // Mostramos finalmente el texto en el bloque de resultados.
     resultado.innerText = texto;
 
 
   } catch (err) {
+    // Si falla la conexión o la respuesta no es un JSON válido,
+    // mostramos el error en pantalla.
     estado.className = "error";
     estado.innerText = "Error de red o JSON inválido";
     resultado.innerText = String(err);
