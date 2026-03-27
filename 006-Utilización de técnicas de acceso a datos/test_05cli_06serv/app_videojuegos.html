@@ -1,475 +1,539 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <title>Panel de videojuegos</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      max-width: 1000px;
-      margin: 20px auto;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <title>Panel de videojuegos</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 1000px;
+        margin: 20px auto;
+      }
 
-    form {
-      border: 1px solid #ccc;
-      padding: 16px;
-      margin-bottom: 20px;
-    }
+      form {
+        border: 1px solid #ccc;
+        padding: 16px;
+        margin-bottom: 20px;
+      }
 
-    label {
-      display: block;
-      margin-top: 10px;
-    }
+      label {
+        display: block;
+        margin-top: 10px;
+      }
 
-    input {
-      width: 100%;
-      padding: 6px;
-      margin-top: 4px;
-      box-sizing: border-box;
-    }
+      input {
+        width: 100%;
+        padding: 6px;
+        margin-top: 4px;
+        box-sizing: border-box;
+      }
 
-    button {
-      margin-top: 12px;
-      margin-right: 8px;
-      padding: 8px 12px;
-      cursor: pointer;
-    }
+      button {
+        margin-top: 12px;
+        margin-right: 8px;
+        padding: 8px 12px;
+        cursor: pointer;
+      }
 
-    .error {
-      border: 2px solid red;
-      background: #ffecec;
-    }
+      .error {
+        border: 2px solid red;
+        background: #ffecec;
+      }
 
-    .focused {
-      border: 2px solid blue;
-    }
+      .focused {
+        border: 2px solid blue;
+      }
 
-    .msg-error {
-      color: #b00020;
-      font-size: 13px;
-      margin: 4px 0 0;
-    }
+      .msg-error {
+        color: #b00020;
+        font-size: 13px;
+        margin: 4px 0 0;
+      }
 
-    .bloque {
-      border: 1px solid #ccc;
-      background: #f9f9f9;
-      padding: 12px;
-      margin-top: 10px;
-    }
+      .bloque {
+        border: 1px solid #ccc;
+        background: #f9f9f9;
+        padding: 12px;
+        margin-top: 10px;
+      }
 
-    .mensaje {
-      margin-top: 10px;
-      padding: 10px;
-      background: #f2f2f2;
-      border: 1px solid #ccc;
-    }
-  </style>
-</head>
-<body>
+      .mensaje {
+        margin-top: 10px;
+        padding: 10px;
+        background: #f2f2f2;
+        border: 1px solid #ccc;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Panel de videojuegos</h1>
 
-<h1>Panel de videojuegos</h1>
+    <h2>Buscar videojuegos (MongoDB)</h2>
 
-<h2>Buscar videojuegos (MongoDB)</h2>
+    <form id="formBusqueda">
+      <label for="titulo">Título</label>
+      <input type="text" id="titulo" name="titulo" placeholder="Ej. Hades" />
 
-<form id="formBusqueda">
-  <label for="titulo">Título</label>
-  <input type="text" id="titulo" name="titulo" placeholder="Ej. Hades">
+      <label for="precio">Precio máximo</label>
+      <input type="number" step="0.01" id="precio" name="precio" value="60" />
 
-  <label for="precio">Precio máximo</label>
-  <input type="number" step="0.01" id="precio" name="precio" value="60">
+      <label for="anio">Año mínimo (posterior a)</label>
+      <input type="number" id="anio" name="anio" value="2020" />
 
-  <label for="anio">Año mínimo (posterior a)</label>
-  <input type="number" id="anio" name="anio" value="2020">
+      <button type="submit">Buscar</button>
+      <button type="button" id="btnVerFavoritos">Ver favoritos</button>
+    </form>
 
-  <button type="submit">Buscar</button>
-  <button type="button" id="btnVerFavoritos">Ver favoritos</button>
-</form>
+    <div id="estado" class="mensaje">Estado: esperando acción</div>
 
-<div id="estado" class="mensaje">Estado: esperando acción</div>
+    <h2>Resultados MongoDB</h2>
+    <div id="resultados"></div>
 
-<h2>Resultados MongoDB</h2>
-<div id="resultados"></div>
+    <h2>Favoritos MySQL</h2>
+    <div id="favoritos"></div>
 
-<h2>Favoritos MySQL</h2>
-<div id="favoritos"></div>
+    <script>
+      const formBusqueda = document.getElementById("formBusqueda");
+      const tituloInput = document.getElementById("titulo");
+      const precioInput = document.getElementById("precio");
+      const anioInput = document.getElementById("anio");
+      const estado = document.getElementById("estado");
+      const resultados = document.getElementById("resultados");
+      const favoritos = document.getElementById("favoritos");
+      const btnVerFavoritos = document.getElementById("btnVerFavoritos");
 
-<script>
-const formBusqueda = document.getElementById("formBusqueda");
-const tituloInput = document.getElementById("titulo");
-const precioInput = document.getElementById("precio");
-const anioInput = document.getElementById("anio");
-const estado = document.getElementById("estado");
-const resultados = document.getElementById("resultados");
-const favoritos = document.getElementById("favoritos");
-const btnVerFavoritos = document.getElementById("btnVerFavoritos");
+      const TIMEOUT_MS = 3000;
 
-const TIMEOUT_MS = 3000;
-
-/* ==================================================
+      /* ==================================================
    UTILIDADES DE ERRORES Y UI
 ================================================== */
-function ponerError(elemento, mensaje) {
-  elemento.classList.add("error");
+      function ponerError(elemento, mensaje) {
+        elemento.classList.add("error");
 
-  const p = document.createElement("p");
-  p.className = "msg-error";
-  p.textContent = mensaje;
+        const p = document.createElement("p");
+        p.className = "msg-error";
+        p.textContent = mensaje;
 
-  elemento.insertAdjacentElement("afterend", p);
-}
+        elemento.insertAdjacentElement("afterend", p);
+      }
 
-function limpiarErrorCampo(elemento) {
-  elemento.classList.remove("error");
+      function limpiarErrorCampo(elemento) {
+        elemento.classList.remove("error");
 
-  const siguiente = elemento.nextElementSibling;
-  if (siguiente && siguiente.classList.contains("msg-error")) {
-    siguiente.remove();
-  }
-}
+        const siguiente = elemento.nextElementSibling;
+        if (siguiente && siguiente.classList.contains("msg-error")) {
+          siguiente.remove();
+        }
+      }
 
-function limpiarErrores() {
-  [tituloInput, precioInput, anioInput].forEach(function (campo) {
-    limpiarErrorCampo(campo);
-  });
-}
+      function limpiarErrores() {
+        [tituloInput, precioInput, anioInput].forEach(function (campo) {
+          limpiarErrorCampo(campo);
+        });
+      }
 
-/* ==================================================
+      /* ==================================================
    CREAR BLOQUE DE RESULTADO DE VIDEOJUEGO
 ================================================== */
-function crearBloqueJuego(juego) {
-  const div = document.createElement("div");
-  div.className = "bloque";
+      function crearBloqueJuego(juego) {
+        const div = document.createElement("div");
+        div.className = "bloque";
 
-  let html = "";
-  html += "<strong>Título:</strong> " + (juego.titulo || "") + "<br>";
-  html += "<strong>Fecha:</strong> " + (juego.fecha_lanzamiento || "") + "<br>";
-  html += "<strong>Precio:</strong> €" + (juego.precio_base || "") + "<br>";
-  html += "<strong>PEGI:</strong> " + (juego.pegi || "") + "<br>";
-  html += "<strong>Motor:</strong> " + (juego.motor || "") + "<br>";
-  html += "<strong>Género:</strong> " + (juego.genero || "") + "<br>";
+        let html = "";
+        html += "<strong>Título:</strong> " + (juego.titulo || "") + "<br>";
+        html +=
+          "<strong>Fecha:</strong> " + (juego.fecha_lanzamiento || "") + "<br>";
+        html +=
+          "<strong>Precio:</strong> €" + (juego.precio_base || "") + "<br>";
+        html += "<strong>PEGI:</strong> " + (juego.pegi || "") + "<br>";
+        html += "<strong>Motor:</strong> " + (juego.motor || "") + "<br>";
+        html += "<strong>Género:</strong> " + (juego.genero || "") + "<br>";
 
-  div.innerHTML = html;
+        div.innerHTML = html;
 
-  const btnGuardar = document.createElement("button");
-  btnGuardar.textContent = "Guardar en favoritos";
+        const btnGuardar = document.createElement("button");
+        btnGuardar.textContent = "Guardar en favoritos";
 
-  btnGuardar.addEventListener("click", async function () {
-    estado.textContent = "Guardando favorito en MySQL...";
+        btnGuardar.addEventListener("click", async function () {
+          estado.textContent = "Guardando favorito en MySQL...";
 
-    // TODO 1:
-    // Crear un AbortController para esta petición de guardado.
-    // Después, crear un temporizador para abortar la petición si tarda más de TIMEOUT_MS milisegundos.
+          // TODO 1:
+          // Crear un AbortController para esta petición de guardado.
+          // Después, crear un temporizador para abortar la petición si tarda más de TIMEOUT_MS milisegundos.
+          const controller = new AbortController();
+          const temporizador = setTimeout(() => {
+            controller.abort();
+          }, TIMEOUT_MS);
 
-    try {
-      const resp = await fetch("favoritos_mysql.php", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json"
-        },
-        body: JSON.stringify({
-          accion: "guardar_favorito",
-          juego: juego
-        })
+          try {
+            const resp = await fetch("favoritos_mysql.php", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+              },
+              body: JSON.stringify({
+                accion: "guardar_favorito",
+                juego: juego,
+              }),
 
-        // TODO 2:
-        // Añadir aquí la propiedad signal
-      });
+              // TODO 2:
+              // Añadir aquí la propiedad signal
+              signal: controller.signal,
+            });
 
-      // TODO 3:
-      // Si la respuesta llega a tiempo, detener el temporizador con clearTimeout.
+            // TODO 3:
+            // Si la respuesta llega a tiempo, detener el temporizador con clearTimeout.
+            clearTimeout(temporizador);
 
-      const data = await resp.json();
-      estado.textContent = data.mensaje;
+            const data = await resp.json();
+            estado.textContent = data.mensaje;
+          } catch (error) {
+            clearTimeout(temporizador);
 
-    } catch (error) {
-      clearTimeout(temporizador);
+            if (error.name === "AbortError") {
+              estado.textContent =
+                "Tiempo de espera agotado al guardar favorito.";
+            } else {
+              estado.textContent =
+                "Error al guardar favorito: " + error.message;
+            }
+          }
+        });
 
-      if (error.name === "AbortError") {
-        estado.textContent = "Tiempo de espera agotado al guardar favorito.";
-      } else {
-        estado.textContent = "Error al guardar favorito: " + error.message;
+        div.appendChild(document.createElement("br"));
+        div.appendChild(btnGuardar);
+
+        return div;
       }
-    }
-  });
 
-  div.appendChild(document.createElement("br"));
-  div.appendChild(btnGuardar);
-
-  return div;
-}
-
-/* ==================================================
+      /* ==================================================
    CREAR BLOQUE DE FAVORITO
 ================================================== */
-function crearBloqueFavorito(favorito) {
-  const div = document.createElement("div");
-  div.className = "bloque";
+      function crearBloqueFavorito(favorito) {
+        const div = document.createElement("div");
+        div.className = "bloque";
 
-  let html = "";
-  html += "<strong>ID favorito:</strong> " + favorito.id_favorito + "<br>";
-  html += "<strong>Título:</strong> " + favorito.titulo + "<br>";
-  html += "<strong>Fecha:</strong> " + (favorito.fecha_lanzamiento || "") + "<br>";
-  html += "<strong>Precio:</strong> €" + (favorito.precio_base || "") + "<br>";
-  html += "<strong>Guardado en:</strong> " + favorito.guardado_en + "<br>";
+        let html = "";
+        html +=
+          "<strong>ID favorito:</strong> " + favorito.id_favorito + "<br>";
+        html += "<strong>Título:</strong> " + favorito.titulo + "<br>";
+        html +=
+          "<strong>Fecha:</strong> " +
+          (favorito.fecha_lanzamiento || "") +
+          "<br>";
+        html +=
+          "<strong>Precio:</strong> €" + (favorito.precio_base || "") + "<br>";
+        html +=
+          "<strong>Guardado en:</strong> " + favorito.guardado_en + "<br>";
 
-  div.innerHTML = html;
+        div.innerHTML = html;
 
-  const btnEliminar = document.createElement("button");
-  btnEliminar.textContent = "Eliminar favorito";
+        const btnEliminar = document.createElement("button");
+        btnEliminar.textContent = "Eliminar favorito";
 
-  btnEliminar.addEventListener("click", async function () {
-    estado.textContent = "Eliminando favorito...";
+        btnEliminar.addEventListener("click", async function () {
+          estado.textContent = "Eliminando favorito...";
 
-    // TODO 4:
-    // Repetir aquí el mismo patrón de timeout usado en el guardado:
-    // - crear AbortController
-    // - crear temporizador con setTimeout
-    // - abortar si se supera TIMEOUT_MS
+          // TODO 4:
+          // Repetir aquí el mismo patrón de timeout usado en el guardado:
+          // - crear AbortController
+          // - crear temporizador con setTimeout
+          // - abortar si se supera TIMEOUT_MS
+          const controller = new AbortController();
+          const temporizador = setTimeout(() => {
+            controller.abort();
+          }, TIMEOUT_MS);
 
-    try {
-      const resp = await fetch("favoritos_mysql.php", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json"
-        },
-        body: JSON.stringify({
-          accion: "eliminar_favorito",
-          id_favorito: favorito.id_favorito
-        })
+          try {
+            const resp = await fetch("favoritos_mysql.php", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+              },
+              body: JSON.stringify({
+                accion: "eliminar_favorito",
+                id_favorito: favorito.id_favorito,
+              }),
+              // TODO 5:
+              // Añadir la señal del controller a esta petición fetch.
+              signal: controller.signal,
+            });
 
-        // TODO 5:
-        // Añadir la señal del controller a esta petición fetch.
-      });
+            // TODO 6:
+            // Si la petición termina correctamente, detener el temporizador.
+            clearTimeout(temporizador);
 
-      // TODO 6:
-      // Si la petición termina correctamente, detener el temporizador.
+            const data = await resp.json();
+            estado.textContent = data.mensaje;
+            cargarFavoritos();
+          } catch (error) {
+            clearTimeout(temporizador);
 
-      const data = await resp.json();
-      estado.textContent = data.mensaje;
-      cargarFavoritos();
+            if (error.name === "AbortError") {
+              estado.textContent =
+                "Tiempo de espera agotado al eliminar favorito.";
+            } else {
+              estado.textContent =
+                "Error al eliminar favorito: " + error.message;
+            }
+          }
+        });
 
-    } catch (error) {
-      clearTimeout(temporizador);
+        div.appendChild(document.createElement("br"));
+        div.appendChild(btnEliminar);
 
-      if (error.name === "AbortError") {
-        estado.textContent = "Tiempo de espera agotado al eliminar favorito.";
-      } else {
-        estado.textContent = "Error al eliminar favorito: " + error.message;
+        return div;
       }
-    }
-  });
 
-  div.appendChild(document.createElement("br"));
-  div.appendChild(btnEliminar);
-
-  return div;
-}
-
-/* ==================================================
+      /* ==================================================
    EVENTOS DE FORMULARIO
 ================================================== */
-// TODO 7:
-// Añadir un listener "input" a cada uno de los tres campos.
-// Cada vez que el usuario escriba o cambie el valor,
-// se debe limpiar el error visual de ese campo llamando
-// a limpiarErrorCampo(...) con el input correspondiente.
+      // TODO 7:
+      // Añadir un listener "input" a cada uno de los tres campos.
+      // Cada vez que el usuario escriba o cambie el valor,
+      // se debe limpiar el error visual de ese campo llamando
+      // a limpiarErrorCampo(...) con el input correspondiente.
+      tituloInput.addEventListener("input", function () {
+        limpiarErrorCampo(tituloInput);
+      });
+      precioInput.addEventListener("input", function () {
+        limpiarErrorCampo(precioInput);
+      });
+      anioInput.addEventListener("input", function () {
+        limpiarErrorCampo(anioInput);
+      });
+      // TODO 8:
+      // Añadir listeners "focus" y "blur" a los tres campos.
+      // Cuando un campo reciba el foco, se le debe añadir la clase "focused".
+      // Cuando lo pierda, se le debe quitar esa clase.
 
+      [tituloInput, precioInput, anioInput].forEach(function (input) {
+        input.addEventListener("focus", function () {
+          input.classList.add("focused");
+        });
+        input.addEventListener("blur", function () {
+          input.classList.remove("focused");
+        });
+      });
 
-// TODO 8:
-// Añadir listeners "focus" y "blur" a los tres campos.
-// Cuando un campo reciba el foco, se le debe añadir la clase "focused".
-// Cuando lo pierda, se le debe quitar esa clase.
-
-
-/* ==================================================
+      /* ==================================================
    EVENTO DE TECLADO
 ================================================== */
-tituloInput.addEventListener("keydown", function (event) {
-  if (event.key === "Enter") {
-    event.preventDefault();
-    formBusqueda.requestSubmit();
-  }
-});
+      tituloInput.addEventListener("keydown", function (event) {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          formBusqueda.requestSubmit();
+        }
+      });
 
-/* ==================================================
+      /* ==================================================
    SUBMIT DEL FORMULARIO
 ================================================== */
-formBusqueda.addEventListener("submit", async function (event) {
-  event.preventDefault();
+      formBusqueda.addEventListener("submit", async function (event) {
+        event.preventDefault();
 
-  limpiarErrores();
-  resultados.innerHTML = "";
+        limpiarErrores();
+        resultados.innerHTML = "";
 
-  let valido = true;
-  let primerError = null;
+        let valido = true;
+        let primerError = null;
 
-  const titulo = tituloInput.value.trim();
-  const precio = precioInput.value.trim();
-  const anio = anioInput.value.trim();
+        const titulo = tituloInput.value.trim();
+        const precio = precioInput.value.trim();
+        const anio = anioInput.value.trim();
 
-  const patronTitulo = /^[A-Za-zÁÉÍÓÚáéíóúÑñ0-9\s:'-]{2,}$/;
-  const patronPrecio = /^\d+(\.\d{1,2})?$/;
-  const patronAnio = /^\d{4}$/;
+        const patronTitulo = /^[A-Za-zÁÉÍÓÚáéíóúÑñ0-9\s:'-]{2,}$/;
+        const patronPrecio = /^\d+(\.\d{1,2})?$/;
+        const patronAnio = /^\d{4}$/;
 
-  // TODO 9:
-  // Validar los tres campos usando las expresiones regulares.
-  // Si un campo es incorrecto:
-  // - llamar a ponerError(...)
-  // - guardar ese campo en primerError si aún no hay ninguno
-  // - cambiar valido a false
-  //
-  // Además:
-  // - el precio debe ser mayor que 0
-  // - el año debe ser como mínimo 1970
+        // TODO 9:
+        // Validar los tres campos usando las expresiones regulares.
+        // Si un campo es incorrecto:
+        // - llamar a ponerError(...)
+        // - guardar ese campo en primerError si aún no hay ninguno
+        // - cambiar valido a false
+        //
+        // Además:
+        // - el precio debe ser mayor que 0
+        // - el año debe ser como mínimo 1970
+        if (!patronTitulo.test(titulo)) {
+          ponerError(tituloInput, "Error al poner el titulo");
+          if (!primerError) primerError = tituloInput;
+          valido = false;
+        }
+        if (!patronPrecio.test(precio)) {
+          ponerError(precioInput, "Error al poner el titulo");
+          if (!primerError) primerError = precioInput;
+          valido = false;
+        }
+        if (!patronAnio.test(anio)) {
+          ponerError(anioInput, "Error al poner el titulo");
+          if (!primerError) primerError = anioInput;
+          valido = false;
+        }
 
-  if (!valido) {
-    // TODO 10:
-    // Si existe primerError, enviar el foco a ese campo.
-    // Después mostrar en el div "estado" que el formulario tiene errores.
-    return;
-  }
+        if (!valido && primerError) {
+          // TODO 10:
+          // Si existe primerError, enviar el foco a ese campo.
+          // Después mostrar en el div "estado" que el formulario tiene errores.
+          primerError.focus();
+          estado.textContent = "El formulario tiene errores";
+          return;
+        }
 
-  estado.textContent = "Consultando MongoDB...";
+        estado.textContent = "Consultando MongoDB...";
 
-  // TODO 11:
-  // Implementar el timeout de esta petición de búsqueda:
-  // - crear AbortController
-  // - crear temporizador con setTimeout
-  // - abortar tras TIMEOUT_MS
+        // TODO 11:
+        // Implementar el timeout de esta petición de búsqueda:
+        // - crear AbortController
+        // - crear temporizador con setTimeout
+        // - abortar tras TIMEOUT_MS
+        const controller = new AbortController();
+        const temporizador = setTimeout(() => {
+          controller.abort();
+        }, TIMEOUT_MS);
 
-  try {
-    const resp = await fetch("buscar_videojuegos_mongo.php", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json"
-      },
-      body: JSON.stringify({
-        accion: "buscar_videojuegos",
-        precio_max: parseFloat(precio),
-        anio_min: parseInt(anio)
-      })
+        try {
+          const resp = await fetch("buscar_videojuegos_mongo.php", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            body: JSON.stringify({
+              accion: "buscar_videojuegos",
+              precio_max: parseFloat(precio),
+              anio_min: parseInt(anio),
+            }),
 
-      // TODO 12:
-      // Añadir aquí la señal del AbortController.
-    });
+            // TODO 12:
+            // Añadir aquí la señal del AbortController.
+            signal: controller.signal,
+          });
 
-    // TODO 13:
-    // Si la petición responde correctamente, detener el temporizador.
+          // TODO 13:
+          // Si la petición responde correctamente, detener el temporizador.
+          clearTimeout(temporizador);
 
-    const data = await resp.json();
+          const data = await resp.json();
 
-    if (!resp.ok) {
-      estado.textContent = "Error del servidor.";
-      return;
-    }
+          if (!resp.ok) {
+            estado.textContent = "Error del servidor.";
+            return;
+          }
 
-    const juegosFiltrados = data.juegos.filter(function (juego) {
-      return juego.titulo.toLowerCase().includes(titulo.toLowerCase());
-    });
+          const juegosFiltrados = data.juegos.filter(function (juego) {
+            return juego.titulo.toLowerCase().includes(titulo.toLowerCase());
+          });
 
-    resultados.innerHTML = "";
-    estado.textContent = "Resultados encontrados: " + juegosFiltrados.length;
+          resultados.innerHTML = "";
+          estado.textContent =
+            "Resultados encontrados: " + juegosFiltrados.length;
 
-    if (juegosFiltrados.length === 0) {
-      resultados.textContent = "No hay videojuegos que cumplan el filtro.";
-      return;
-    }
+          if (juegosFiltrados.length === 0) {
+            resultados.textContent =
+              "No hay videojuegos que cumplan el filtro.";
+            return;
+          }
 
-    juegosFiltrados.forEach(function (juego) {
-      resultados.appendChild(crearBloqueJuego(juego));
-    });
+          juegosFiltrados.forEach(function (juego) {
+            resultados.appendChild(crearBloqueJuego(juego));
+          });
+        } catch (error) {
+          clearTimeout(temporizador);
 
-  } catch (error) {
-    clearTimeout(temporizador);
+          if (error.name === "AbortError") {
+            estado.textContent =
+              "Tiempo de espera agotado al consultar MongoDB.";
+          } else {
+            estado.textContent = "Error al cargar favoritos: " + error.message;
+          }
+        }
+      });
 
-    if (error.name === "AbortError") {
-      estado.textContent = "Tiempo de espera agotado al consultar MongoDB.";
-    } else {
-      estado.textContent = "Error al cargar favoritos: " + error.message;
-    }
-  }
-});
-
-/* ==================================================
+      /* ==================================================
    CARGAR FAVORITOS
 ================================================== */
-async function cargarFavoritos() {
-  estado.textContent = "Cargando favoritos desde MySQL...";
-  favoritos.innerHTML = "";
+      async function cargarFavoritos() {
+        estado.textContent = "Cargando favoritos desde MySQL...";
+        favoritos.innerHTML = "";
 
-  // TODO 14:
-  // Implementar el timeout de esta petición de listado de favoritos.
-  // Debe seguir el mismo patrón que las demás:
-  // - AbortController
-  // - setTimeout
-  // - abortar si tarda demasiado
+        // TODO 14:
+        // Implementar el timeout de esta petición de listado de favoritos.
+        // Debe seguir el mismo patrón que las demás:
+        // - AbortController
+        // - setTimeout
+        // - abortar si tarda demasiado
+        const controller = new AbortController();
+        const temporizador = setTimeout(() => {
+          controller.abort();
+        }, TIMEOUT_MS);
 
-  try {
-    const resp = await fetch("favoritos_mysql.php", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json"
-      },
-      body: JSON.stringify({
-        accion: "listar_favoritos"
-      })
+        try {
+          const resp = await fetch("favoritos_mysql.php", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            body: JSON.stringify({
+              accion: "listar_favoritos",
+            }),
+            signal: controller.signal,
+            // TODO 15:
+            // Añadir aquí la señal del AbortController.
+          });
 
-      // TODO 15:
-      // Añadir aquí la señal del AbortController.
-    });
+          // TODO 16:
+          // Si la respuesta llega a tiempo, detener el temporizador.
+          clearTimeout(temporizador);
 
-    // TODO 16:
-    // Si la respuesta llega a tiempo, detener el temporizador.
+          const data = await resp.json();
 
-    const data = await resp.json();
+          favoritos.innerHTML = "";
 
-    favoritos.innerHTML = "";
+          if (data.total === 0) {
+            favoritos.textContent = "No hay favoritos guardados.";
+            estado.textContent = "Favoritos cargados.";
+            return;
+          }
 
-    if (data.total === 0) {
-      favoritos.textContent = "No hay favoritos guardados.";
-      estado.textContent = "Favoritos cargados.";
-      return;
-    }
+          data.favoritos.forEach(function (favorito) {
+            favoritos.appendChild(crearBloqueFavorito(favorito));
+          });
 
-    data.favoritos.forEach(function (favorito) {
-      favoritos.appendChild(crearBloqueFavorito(favorito));
-    });
+          estado.textContent = "Favoritos cargados.";
+        } catch (error) {
+          clearTimeout(temporizador);
 
-    estado.textContent = "Favoritos cargados.";
+          if (error.name === "AbortError") {
+            estado.textContent =
+              "Tiempo de espera agotado al cargar favoritos.";
+          } else {
+            estado.textContent = "Error al cargar favoritos: " + error.message;
+          }
+        }
+      }
 
-  } catch (error) {
-    clearTimeout(temporizador);
-
-    if (error.name === "AbortError") {
-      estado.textContent = "Tiempo de espera agotado al cargar favoritos.";
-    } else {
-      estado.textContent = "Error al cargar favoritos: " + error.message;
-    }
-  }
-}
-
-/* ==================================================
+      /* ==================================================
    BOTÓN VER FAVORITOS
 ================================================== */
-// TODO 17:
-// Añade un listener al botón "btnVerFavoritos" que llame a la función para cargar los favoritos
-btnVerFavoritos.addEventListener("click", function () {
-  cargarFavoritos();
-});
+      // TODO 17:
+      // Añade un listener al botón "btnVerFavoritos" que llame a la función para cargar los favoritos
+      btnVerFavoritos.addEventListener("click", function () {
+        cargarFavoritos();
+      });
 
-/* ==================================================
+      /* ==================================================
    EVENTO LOAD
 ================================================== */
-// TODO 18:
-// Añade un lister de carga de la página que envíe el foco a "tituloInput"
-window.addEventListener("load", function () {
-  tituloInput.focus();
-});
-</script>
-
-</body>
+      // TODO 18:
+      // Añade un lister de carga de la página que envíe el foco a "tituloInput"
+      window.addEventListener("load", function () {
+        tituloInput.focus();
+      });
+    </script>
+  </body>
 </html>
