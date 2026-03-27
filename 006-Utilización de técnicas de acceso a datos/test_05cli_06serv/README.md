@@ -14,22 +14,24 @@ Práctica típica de examen: el cliente valida y envía, PHP procesa, MongoDB bu
 
 ## 🗺️ Mapa mental — qué hace cada parte
 
+```text
 ¿Qué necesito hacer?
-        │
-        ├── Validar lo que escribe el usuario
-        │       └── Cliente: `app_videojuegos.html`
-        │
-        ├── Buscar videojuegos con filtros
-        │       └── `fetch()` → `buscar_videojuegos_mongo.php` → MongoDB
-        │
-        ├── Guardar un resultado como favorito
-        │       └── `fetch()` → `favoritos_mysql.php` → MySQL `INSERT`
-        │
-        ├── Ver favoritos guardados
-        │       └── `fetch()` → `favoritos_mysql.php` → MySQL `SELECT`
-        │
-        └── Eliminar un favorito
-                └── `fetch()` → `favoritos_mysql.php` → MySQL `DELETE`
+|
+|-- Validar lo que escribe el usuario
+|   `-- Cliente: app_videojuegos.html
+|
+|-- Buscar videojuegos con filtros
+|   `-- fetch() -> buscar_videojuegos_mongo.php -> MongoDB
+|
+|-- Guardar un resultado como favorito
+|   `-- fetch() -> favoritos_mysql.php -> MySQL INSERT
+|
+|-- Ver favoritos guardados
+|   `-- fetch() -> favoritos_mysql.php -> MySQL SELECT
+|
+`-- Eliminar un favorito
+    `-- fetch() -> favoritos_mysql.php -> MySQL DELETE
+```
 
 ## 📡 Los patrones que se reutilizan
 
@@ -142,17 +144,20 @@ clearTimeout(temporizador);
 
 ## 🔁 Flujo cliente ↔ servidor
 
-Cliente (`app_videojuegos.html`)        Servidor PHP + BBDD
-     │                                          │
-     │ usuario rellena formulario               │
-     │ valida datos en JS                       │
-     │ ─────────────────────────────────────►   │
-     │ `fetch()` con JSON                       │
-     │                                          │ procesa JSON
-     │                                          │ consulta Mongo o MySQL
-     │ ◄─────────────────────────────────────   │
-     │ recibe JSON                              │
-     │ pinta resultados / favoritos             │
+```text
+Cliente: app_videojuegos.html          Servidor: PHP + MongoDB/MySQL
+
+1. El usuario rellena el formulario
+2. JavaScript valida los datos
+3. JS hace fetch() con JSON
+   ------------------------------>
+4. PHP recibe y procesa el JSON
+5. PHP consulta MongoDB o MySQL
+6. PHP devuelve una respuesta JSON
+   <------------------------------
+7. JavaScript recibe la respuesta
+8. La página pinta resultados o favoritos
+```
 
 ## ⚠️ Reglas que no conviene olvidar
 
