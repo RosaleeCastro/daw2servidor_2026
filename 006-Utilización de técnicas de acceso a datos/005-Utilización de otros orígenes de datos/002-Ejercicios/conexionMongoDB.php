@@ -106,12 +106,12 @@ $client = new Client("mongodb://localhost:27017");
 
 // Seleccionar base de datos
 // Si no existe MongoDB la crea automáticamente
-$db = $client->Videojuegos;
+$db = $client->videojuegos;
 
 
 // Seleccionar colección
 // En MongoDB una colección equivale a una tabla en SQL
-$collection = $db->Juegos;
+$collection = $db->juegos;
 
 
 // Obtener todos los documentos de la colección
