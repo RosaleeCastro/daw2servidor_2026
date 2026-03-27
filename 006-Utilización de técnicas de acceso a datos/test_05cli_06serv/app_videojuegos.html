@@ -363,12 +363,12 @@
           if (!primerError) primerError = tituloInput;
           valido = false;
         }
-        if (!patronPrecio.test(precio)) {
+        if (!patronPrecio.test(precio) && !(precio > 0)) {
           ponerError(precioInput, "Error al poner el titulo");
           if (!primerError) primerError = precioInput;
           valido = false;
         }
-        if (!patronAnio.test(anio)) {
+        if (!patronAnio.test(anio) && !(anio >= 1970)) {
           ponerError(anioInput, "Error al poner el titulo");
           if (!primerError) primerError = anioInput;
           valido = false;

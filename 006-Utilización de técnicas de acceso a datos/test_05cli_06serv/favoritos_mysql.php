@@ -12,9 +12,16 @@ $data = json_decode($raw, true);
 
 $accion = $data["accion"] ?? "";
 
+$pdo->beginTransaction();
+
 try {
     // TODO 1:
     // Crear la conexión PDO con MySQL
+    $pdo = new PDO(
+        "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4",
+        $user,
+        $pass
+    );
 
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
@@ -46,9 +53,18 @@ try {
             // - precio_base
             //
             // Usa parámetros con nombre.
+            $sqlInsert = "INSERT INTO favorito (titulo, fecha_lanzamiento, precio_base)
+                VALUES (:titulo, :fecha_lanzamiento :precio)";
+
+            $stmt = $pdo->prepare($sqlInsert);
 
             // TODO 3:
             // Ejecutar la consulta preparada enviando los valores del juego recibido en el JSON.
+             $stmt->execute([
+                ':titulo' => $data["titulo"],
+                ':fecha_lanzamiento' => $data["fecha_lanzamiento"],
+                ':precio =>'=> $data["precio"]
+            ]);
 
             echo json_encode([
                 "ok" => true,
@@ -74,6 +90,14 @@ try {
         // - fecha_lanzamiento
         // - precio_base
         // - guardado_en
+        $stmt =$pdo->query(
+            "SELECT 
+                id_favorito
+                titulo
+                fecha_lanzamiento
+                precio_base
+                guardado_en FROM favoritos"
+        );     
 
         $favoritos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -93,10 +117,17 @@ try {
         // filtrando por su id_favorito.
         //
         // Debe usarse un parámetro con nombre.
+        $stmt = $pdo->prepare("
+             DELETE FROM favoritos
+             WHERE id = :id
+            ");           
 
         // TODO 6:
         // Ejecutar la consulta preparada enviando el id_favorito recibido
         // en el JSON de entrada.
+        $stmt->execute([
+            ':id' => $data["id"]
+            ]);
 
         echo json_encode([
             "ok" => true,
@@ -109,7 +140,7 @@ try {
         "ok" => false,
         "mensaje" => "Acción no reconocida."
     ]);
-
+    $pdo->commit();
 } catch (PDOException $e) {
     http_response_code(500);
 
@@ -117,4 +148,7 @@ try {
         "ok" => false,
         "error" => $e->getMessage()
     ], JSON_PRETTY_PRINT);
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
 }
