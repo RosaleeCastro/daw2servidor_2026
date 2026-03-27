@@ -24,10 +24,6 @@ $sql = "INSERT INTO videojuego
         VALUES
         (:titulo, :fecha_lanzamiento, :pegi, :precio_base, :motor, :es_multijugador, :id_estudio, :id_juego_padre, :descripcion)";
 
-// obtener el id del ultimo elemento insertado
-$idNuevo = $pdo->lastInsertId();
-$sqlSelect = "SELECT * FROM videojuego WHERE id_videojuego = :id";
-
 $stmt = $pdo->prepare($sql);
 
 $stmt->execute([
@@ -41,6 +37,12 @@ $stmt->execute([
     ":id_juego_padre" => $id_juego_padre,
     ":descripcion" => $descripcion
 ]);
+// obtener el id del ultimo elemento insertado
+
+$idNuevo = $pdo->lastInsertId();
+echo "ID nuevo: " . $idNuevo . "<br>";
+
+$sqlSelect = "SELECT * FROM videojuego WHERE id_videojuego = :id";
 
 $stmtSelect = $pdo->prepare($sqlSelect);
 $stmtSelect->execute([
@@ -49,5 +51,17 @@ $stmtSelect->execute([
 
 $fila = $stmtSelect->fetch(PDO::FETCH_ASSOC);
 
+if (!$fila) {
+    die("No se encontró la fila insertada.");
+}
+
+
 echo "Videojuego insertado correctamente.";
+echo "<h2>Videojuego insertado</h2>";
+echo "ID: " . $fila["id_videojuego"] . "<br>";
+echo "Título: " . $fila["titulo"] . "<br>";
+echo "Fecha: " . $fila["fecha_lanzamiento"] . "<br>";
+echo "PEGI: " . $fila["pegi"] . "<br>";
+echo "Precio: " . $fila["precio_base"] . "<br>";
+
 ?>

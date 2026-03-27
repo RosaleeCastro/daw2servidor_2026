@@ -92,10 +92,12 @@ Ejecutar el siguiente comando para arrancar el servidor.
 & "C:\Program Files\MongoDB\Server\8.2\bin\mongod.exe" --dbpath C:\mongodb\data
 */
 
-require 'vendor/autoload.php';
+require __DIR__ . '/vendor/autoload.php';
+
 
 
 use MongoDB\Client;
+
 
 
 // Conectar con el servidor MongoDB
