@@ -16,12 +16,13 @@ $fechaMin = $anioMin . "-12-31";
 try {
     // TODO 1:
     // Crear la conexión con el servidor MongoDB local.
-
+    $client = new Client("mongodb://localhost:27017");
     // TODO 2:
     // Seleccionar la base de datos llamada Videojuegos.
-
+    $db = $client->Videojuegos;
     // TODO 3:
     // Seleccionar la colección llamada JuegosBase.
+    $collection = $db->JuegosBase;
 
     $filtro = [
         "precio_base" => ['$lte' => $precioMax],
@@ -31,6 +32,7 @@ try {
     // TODO 4:
     // Ejecutar la consulta sobre la colección usando el filtro anterior (pasaselo como parámetro)
     // El resultado debe guardarse en una variable para poder recorrerlo después.
+    $cursor = $collection->find($filtro);
 
     $juegos = [];
 
@@ -48,6 +50,19 @@ try {
     // - descripcion
     //
     // Si algún campo no existe, devolver cadena vacía como valor por defecto.
+$juegos = [];
+
+foreach ($cursor as $juego) {
+    $juegos[] = [
+        "titulo" => isset($juego["titulo"]) ? $juego["titulo"] : "",
+        "fecha_lanzamiento" => isset($juego["fecha_lanzamiento"]) ? $juego["fecha_lanzamiento"] : "",
+        "pegi" => isset($juego["pegi"]) ? $juego["pegi"] : "",
+        "precio_base" => isset($juego["precio_base"]) ? $juego["precio_base"] : "",
+        "motor" => isset($juego["motor"]) ? $juego["motor"] : "",
+        "genero" => isset($juego["genero"]) ? $juego["genero"] : "",
+        "descripcion" => isset($juego["descripcion"]) ? $juego["descripcion"] : ""
+    ];
+}
 
     echo json_encode([
         "ok" => true,
