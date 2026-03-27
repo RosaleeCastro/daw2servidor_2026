@@ -1,0 +1,56 @@
+[
+  {
+    "titulo": "Baldur's Gate 3",
+    "fecha_lanzamiento": "2023-08-03",
+    "pegi": 18,
+    "precio_base": 59.99,
+    "motor": "Divinity Engine",
+    "genero": "RPG",
+    "descripcion": "RPG basado en D&D."
+  },
+  {
+    "titulo": "Elden Ring",
+    "fecha_lanzamiento": "2022-02-25",
+    "pegi": 16,
+    "precio_base": 59.99,
+    "motor": "FromEngine",
+    "genero": "Acción RPG",
+    "descripcion": "Acción RPG en mundo abierto."
+  },
+  {
+    "titulo": "Cyberpunk 2077",
+    "fecha_lanzamiento": "2020-12-10",
+    "pegi": 18,
+    "precio_base": 59.99,
+    "motor": "REDengine 4",
+    "genero": "RPG",
+    "descripcion": "RPG de ciencia ficción."
+  },
+  {
+    "titulo": "Hades",
+    "fecha_lanzamiento": "2020-09-17",
+    "pegi": 12,
+    "precio_base": 24.99,
+    "motor": "Unreal Engine",
+    "genero": "Roguelike",
+    "descripcion": "Roguelike de acción."
+  },
+  {
+    "titulo": "Minecraft",
+    "fecha_lanzamiento": "2011-11-18",
+    "pegi": 7,
+    "precio_base": 26.95,
+    "motor": "Java",
+    "genero": "Sandbox",
+    "descripcion": "Sandbox de construcción."
+  },
+  {
+    "titulo": "Metroid Dread",
+    "fecha_lanzamiento": "2021-10-08",
+    "pegi": 12,
+    "precio_base": 59.99,
+    "motor": "Mercury Engine",
+    "genero": "Aventura",
+    "descripcion": "Aventura de acción con exploración y progresión."
+  }
+]
