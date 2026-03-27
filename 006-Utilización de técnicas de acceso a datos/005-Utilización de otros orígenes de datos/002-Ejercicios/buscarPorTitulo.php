@@ -10,8 +10,8 @@ $documentoActualizado = null;
 $client = new Client("mongodb://localhost:27017");
 
 // Seleccionar base de datos y colección
-$db = $client->Videojuegos;
-$collection = $db->Juegos;
+$db = $client->videojuegos;
+$collection = $db->juegos;
 
 // =====================================================
 // PROCESAR FORMULARIOS

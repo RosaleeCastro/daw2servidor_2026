@@ -2,7 +2,6 @@
 require 'vendor/autoload.php';
 
 use MongoDB\Client;
-use MongoDB\BSON\ObjectId;
 
 $mensaje = "";
 
@@ -10,10 +9,10 @@ $mensaje = "";
 $client = new Client("mongodb://localhost:27017");
 
 // Seleccionar base de datos
-$db = $client->Videojuegos;
+$db = $client->videojuegos;
 
 // Seleccionar colección
-$collection = $db->Juegos;
+$collection = $db->juegos;
 
 
 // =====================================================
@@ -112,7 +111,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             if (!empty($camposActualizar)) {
                 $resultado = $collection->updateOne(
-                    ["_id" => new ObjectId($id)],
+                   ["_id" => new \MongoDB\BSON\ObjectId($id)],
+
                     ['$set' => $camposActualizar]
                 );
 
@@ -135,7 +135,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         if ($id !== "") {
             $resultado = $collection->deleteOne([
-                "_id" => new ObjectId($id)
+                "_id" => new \MongoDB\BSON\ObjectId($id)
             ]);
 
             $mensaje = "Documentos eliminados: " . $resultado->getDeletedCount();

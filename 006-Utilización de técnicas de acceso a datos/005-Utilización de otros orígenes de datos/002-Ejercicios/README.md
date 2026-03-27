@@ -36,11 +36,13 @@ use MongoDB\BSON\ObjectId;   // necesario para buscar/editar/borrar por _id
 $client = new Client("mongodb://localhost:27017");
 
 // Seleccionar base de datos (se crea sola si no existe)
-$db = $client->Videojuegos;
+$db = $client->videojuegos;
 
 // Seleccionar colección (= tabla en SQL)
-$collection = $db->Juegos;
+$collection = $db->juegos;
 ```
+
+> ⚠️ Usa siempre exactamente el mismo nombre, también en mayúsculas/minúsculas. Si ya existe `videojuegos`, no intentes crear `Videojuegos`.
 
 ---
 
