@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Conectar con una API</title>
+  </head>
+  <body>
+    <h1>Datos desde una API</h1>
+    <button id="btnCargar">Cargar datos</button>
+
+    <pre id="resultado"></pre>
+
+    <script>
+      const boton = document.getElementById("btnCargar");
+      const resultado = document.getElementById("resultado");
+
+      boton.addEventListener("click", async () => {
+        try {
+          const respuesta = await fetch("URL_DE_LA_API_AQUI");
+
+          if (!respuesta.ok) {
+            throw new Error("Error al conectar con la API");
+          }
+
+          const datos = await respuesta.json();
+
+          resultado.textContent = JSON.stringify(datos, null, 2);
+        } catch (error) {
+          resultado.textContent = "Hubo un problema: " + error.message;
+        }
+      });
+    </script>
+  </body>
+</html>
