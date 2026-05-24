@@ -1,23 +1,30 @@
 <!doctype html>
 <html lang="es">
   <head>
+    <!-- Codificación para que se vean bien acentos, ñ y símbolo €. -->
     <meta charset="UTF-8" />
+
+    <!-- Hace que la página se adapte mejor a móvil y escritorio. -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
     <title>Tienda de videojuegos por servicios</title>
   </head>
   <body>
     <!--
-      Cliente HTML preparado para el ejercicio de servicios web de videojuegos.
+      Cliente HTML + JavaScript del ejercicio de videojuegos.
 
-      IMPORTANTE:
-      - Todavía no contiene JavaScript.
-      - El videojuego se seleccionará mediante un select.
-      - No se usa input manual para escribir el videojuego.
-      - Los id de los elementos quedan preparados para conectar después con JS.
+      Este archivo no se conecta directamente a MySQL.
+      Se comunica con estos servicios PHP mediante fetch():
+      - servicio_videojuegos.php: listar videojuegos y filtrar por precio.
+      - servicio_disponinlidad.php: consultar tiendas y restar stock.
+      - servicio_calculo_precio.php: calcular subtotal, descuento, IVA y total.
+
+      El videojuego se elige con un select, no con un input manual.
     -->
 
     <h1>Tienda de videojuegos</h1>
 
+    <!-- Bloque 1: cargar videojuegos y elegir uno desde un select. -->
     <section>
       <h2>1. Catálogo de videojuegos</h2>
 
@@ -37,6 +44,7 @@
 
     <hr />
 
+    <!-- Bloque 2: filtrar la tabla de videojuegos por precio máximo. -->
     <section>
       <h2>2. Filtrar videojuegos por precio</h2>
 
@@ -52,15 +60,14 @@
 
       <br /><br />
 
-      <button type="button" id="btnFiltrarPrecio">
-        Filtrar por precio
-      </button>
+      <button type="button" id="btnFiltrarPrecio">Filtrar por precio</button>
 
       <p id="resultadoFiltroPrecio"></p>
     </section>
 
     <hr />
 
+    <!-- Bloque 3: consultar tiendas disponibles y restar unidades de stock. -->
     <section>
       <h2>3. Disponibilidad</h2>
 
@@ -82,15 +89,14 @@
 
       <br /><br />
 
-      <button type="button" id="btnRestarStock">
-        Restar stock
-      </button>
+      <button type="button" id="btnRestarStock">Restar stock</button>
 
       <p id="resultadoDisponibilidad"></p>
     </section>
 
     <hr />
 
+    <!-- Bloque 4: introducir cantidad, descuento e IVA para calcular precio. -->
     <section>
       <h2>4. Cálculo de precio</h2>
 
@@ -141,6 +147,7 @@
 
       <p id="resultadoCalculoPrecio"></p>
     </section>
+
     <script>
       // Referencias del catálogo de videojuegos.
       const btnCargarVideojuegos = document.getElementById(
@@ -176,6 +183,407 @@
       const resultadoCalculoPrecio = document.getElementById(
         "resultadoCalculoPrecio"
       );
+
+      // Eventos principales: cada botón llama a una función del ejercicio.
+      btnCargarVideojuegos.addEventListener("click", cargarVideojuegos);
+      btnFiltrarPrecio.addEventListener("click", filtrarPrecio);
+      btnConsultarDisponibilidad.addEventListener(
+        "click",
+        consultarDisponibilidad
+      );
+      btnRestarStock.addEventListener("click", restarStock);
+      btnCalcularPrecio.addEventListener("click", calcularPrecio);
+
+      /*
+       * Devuelve el id del videojuego seleccionado.
+       *
+       * Esta pequeña función evita repetir selectVideojuego.value en todas
+       * partes y hace más fácil reutilizar el código.
+       */
+      function obtenerIdVideojuegoSeleccionado() {
+        return selectVideojuego.value;
+      }
+
+      /*
+       * Devuelve el option actualmente seleccionado.
+       *
+       * Lo usamos para recuperar datos guardados en data-precio cuando más
+       * adelante calculemos el precio final.
+       */
+      function obtenerOpcionVideojuegoSeleccionada() {
+        return selectVideojuego.options[selectVideojuego.selectedIndex];
+      }
+
+      /*
+       * Convierte un videojuego recibido del servicio en texto visible.
+       *
+       * Está preparado para varios nombres de campo habituales:
+       * - id_videojuego o id
+       * - titulo, nombre o videojuego
+       * - precio
+       */
+      function formatearVideojuego(videojuego) {
+        const id = videojuego.id_videojuego ?? videojuego.id ?? "";
+        const titulo =
+          videojuego.titulo ?? videojuego.nombre ?? videojuego.videojuego ?? "";
+        const precio = videojuego.precio ?? "";
+
+        if (precio === "") {
+          return id + " - " + titulo;
+        }
+
+        return id + " - " + titulo + " - €" + precio;
+      }
+
+      /*
+       * Carga todos los videojuegos.
+       *
+       * Conecta con:
+       * - servicio_videojuegos.php
+       *
+       * Espera una respuesta parecida a:
+       * {
+       *   "ok": true,
+       *   "videojuegos": [...]
+       * }
+       */
+      async function cargarVideojuegos() {
+        resultadoVideojuegos.innerText = "Cargando videojuegos...";
+        resultadoFiltroPrecio.innerText = "";
+        resultadoDisponibilidad.innerText = "";
+        resultadoCalculoPrecio.innerText = "";
+
+        try {
+          const respuesta = await fetch("servicio_videojuegos.php");
+          const data = await respuesta.json();
+
+          if (!data.ok) {
+            resultadoVideojuegos.innerText =
+              data.mensaje || "Error al cargar videojuegos";
+            return;
+          }
+
+          const videojuegos = data.videojuegos ?? data.datos ?? [];
+
+          selectVideojuego.innerHTML =
+            '<option value="">-- Selecciona un videojuego --</option>';
+
+          let texto = "";
+
+          videojuegos.forEach(function (videojuego) {
+            const id = videojuego.id_videojuego ?? videojuego.id;
+            const titulo =
+              videojuego.titulo ??
+              videojuego.nombre ??
+              videojuego.videojuego ??
+              "Sin título";
+            const precio = videojuego.precio ?? "";
+
+            const option = document.createElement("option");
+            option.value = id;
+            option.textContent =
+              precio === "" ? titulo : titulo + " - €" + precio;
+            option.dataset.precio = precio;
+            selectVideojuego.appendChild(option);
+
+            texto += formatearVideojuego(videojuego) + "\n";
+          });
+
+          resultadoVideojuegos.innerText =
+            texto || "No hay videojuegos disponibles.";
+        } catch (error) {
+          resultadoVideojuegos.innerText =
+            "Error de red al cargar videojuegos";
+        }
+      }
+
+      /*
+       * Filtra videojuegos por precio máximo.
+       *
+       * Conecta con:
+       * - servicio_videojuegos.php
+       *
+       * Envía JSON:
+       * {
+       *   "precio_maximo": 50
+       * }
+       */
+      async function filtrarPrecio() {
+        const precioMaximo = inputPrecioMaximo.value;
+
+        resultadoFiltroPrecio.innerText = "";
+
+        if (precioMaximo === "" || parseFloat(precioMaximo) < 0) {
+          resultadoFiltroPrecio.innerText =
+            "Debes indicar un precio máximo válido.";
+          return;
+        }
+
+        try {
+          const respuesta = await fetch("servicio_videojuegos.php", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            body: JSON.stringify({
+              precio_maximo: parseFloat(precioMaximo),
+            }),
+          });
+
+          const data = await respuesta.json();
+
+          if (!data.ok) {
+            resultadoFiltroPrecio.innerText =
+              data.mensaje || "Error al filtrar videojuegos";
+            return;
+          }
+
+          const videojuegos = data.videojuegos ?? data.datos ?? [];
+          let texto = "";
+
+          videojuegos.forEach(function (videojuego) {
+            texto += formatearVideojuego(videojuego) + "\n";
+          });
+
+          resultadoFiltroPrecio.innerText =
+            texto || "No hay videojuegos con ese precio máximo.";
+        } catch (error) {
+          resultadoFiltroPrecio.innerText =
+            "Error de red al filtrar videojuegos";
+        }
+      }
+
+      /*
+       * Consulta en qué tiendas está disponible el videojuego seleccionado.
+       *
+       * Conecta con:
+       * - servicio_disponinlidad.php
+       *
+       * Envía JSON:
+       * {
+       *   "id_videojuego": 1
+       * }
+       */
+      async function consultarDisponibilidad() {
+        const idVideojuego = obtenerIdVideojuegoSeleccionado();
+
+        resultadoDisponibilidad.innerText = "";
+
+        if (idVideojuego === "") {
+          resultadoDisponibilidad.innerText =
+            "Debes seleccionar un videojuego.";
+          return;
+        }
+
+        try {
+          const respuesta = await fetch("servicio_disponibilidad.php", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            body: JSON.stringify({
+              id_videojuego: parseInt(idVideojuego),
+            }),
+          });
+
+          const data = await respuesta.json();
+
+          if (!data.ok) {
+            resultadoDisponibilidad.innerText =
+              data.mensaje || "Error al consultar disponibilidad";
+            return;
+          }
+
+          const tiendas = data.tiendas ?? data.disponibilidad ?? data.datos ?? [];
+          let texto = "";
+
+          tiendas.forEach(function (tienda) {
+            const nombreTienda = tienda.tienda ?? tienda.nombre ?? "";
+            const stock = tienda.stock ?? tienda.unidades ?? "";
+
+            texto += nombreTienda;
+
+            if (stock !== "") {
+              texto += " - Stock: " + stock;
+            }
+
+            texto += "\n";
+          });
+
+          resultadoDisponibilidad.innerText =
+            texto || "No hay tiendas disponibles para ese videojuego.";
+        } catch (error) {
+          resultadoDisponibilidad.innerText =
+            "Error de red al consultar disponibilidad";
+        }
+      }
+
+      /*
+       * Resta unidades del stock del videojuego seleccionado.
+       *
+       * Conecta con:
+       * - servicio_disponinlidad.php
+       *
+       * Envía JSON:
+       * {
+       *   "id_videojuego": 1,
+       *   "cantidad": 2,
+       *   "accion": "restar_stock"
+       * }
+       */
+      async function restarStock() {
+        const idVideojuego = obtenerIdVideojuegoSeleccionado();
+        const cantidad = inputCantidadStock.value;
+
+        resultadoDisponibilidad.innerText = "";
+
+        if (idVideojuego === "") {
+          resultadoDisponibilidad.innerText =
+            "Debes seleccionar un videojuego.";
+          return;
+        }
+
+        if (cantidad === "" || parseInt(cantidad) < 1) {
+          resultadoDisponibilidad.innerText =
+            "Debes indicar una cantidad válida para restar stock.";
+          return;
+        }
+
+        try {
+          const respuesta = await fetch("servicio_disponibilidad.php", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            body: JSON.stringify({
+              accion: "restar_stock",
+              id_videojuego: parseInt(idVideojuego),
+              cantidad: parseInt(cantidad),
+            }),
+          });
+
+          const data = await respuesta.json();
+
+          if (!data.ok) {
+            resultadoDisponibilidad.innerText =
+              data.mensaje || "Error al restar stock";
+            if (data.stock_actual !== undefined) {
+              resultadoDisponibilidad.innerText +=
+                "\nStock actual: " + data.stock_actual;
+            }
+            return;
+          }
+
+          resultadoDisponibilidad.innerText =
+            (data.mensaje || "Stock actualizado correctamente") +
+            "\nStock restante: " +
+            (data.stock_restante ?? data.stock ?? "sin dato");
+        } catch (error) {
+          resultadoDisponibilidad.innerText = "Error de red al restar stock";
+        }
+      }
+
+      /*
+       * Calcula subtotal, descuento, IVA y total del videojuego seleccionado.
+       *
+       * Conecta con:
+       * - servicio_calculo_precio.php
+       *
+       * Envía JSON:
+       * {
+       *   "precio": 59.99,
+       *   "cantidad": 2,
+       *   "descuento": 10,
+       *   "iva": 21
+       * }
+       */
+      async function calcularPrecio() {
+        const idVideojuego = obtenerIdVideojuegoSeleccionado();
+        const opcionSeleccionada = obtenerOpcionVideojuegoSeleccionada();
+        const precio = opcionSeleccionada?.dataset.precio;
+        const cantidad = inputCantidad.value;
+        const descuento = inputDescuento.value;
+        const iva = inputIva.value;
+
+        resultadoCalculoPrecio.innerText = "";
+
+        if (idVideojuego === "") {
+          resultadoCalculoPrecio.innerText =
+            "Debes seleccionar un videojuego.";
+          return;
+        }
+
+        if (precio === undefined || precio === "") {
+          resultadoCalculoPrecio.innerText =
+            "El videojuego seleccionado no tiene precio cargado.";
+          return;
+        }
+
+        if (cantidad === "" || parseInt(cantidad) < 1) {
+          resultadoCalculoPrecio.innerText =
+            "Debes indicar una cantidad válida.";
+          return;
+        }
+
+        if (
+          descuento === "" ||
+          parseFloat(descuento) < 0 ||
+          parseFloat(descuento) > 100
+        ) {
+          resultadoCalculoPrecio.innerText =
+            "Debes indicar un descuento entre 0 y 100.";
+          return;
+        }
+
+        if (iva === "" || parseFloat(iva) < 0 || parseFloat(iva) > 100) {
+          resultadoCalculoPrecio.innerText =
+            "Debes indicar un IVA entre 0 y 100.";
+          return;
+        }
+
+        try {
+          const respuesta = await fetch("servicio_calculo_precio.php", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            body: JSON.stringify({
+              precio: parseFloat(precio),
+              cantidad: parseInt(cantidad),
+              descuento: parseFloat(descuento),
+              iva: parseFloat(iva),
+            }),
+          });
+
+          const data = await respuesta.json();
+
+          if (!data.ok) {
+            resultadoCalculoPrecio.innerText =
+              data.mensaje || "Error al calcular el precio";
+            return;
+          }
+
+          resultadoCalculoPrecio.innerText =
+            "Subtotal: €" +
+            data.subtotal +
+            "\n" +
+            "Importe descuento: €" +
+            data.importe_descuento +
+            "\n" +
+            "Importe IVA: €" +
+            data.importe_iva +
+            "\n" +
+            "Total a pagar: €" +
+            data.total;
+        } catch (error) {
+          resultadoCalculoPrecio.innerText =
+            "Error de red al calcular el precio";
+        }
+      }
     </script>
   </body>
 </html>
