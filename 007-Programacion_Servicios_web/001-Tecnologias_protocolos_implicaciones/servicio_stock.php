@@ -1,13 +1,34 @@
 <?php
+/*
+ * Servicio web: consulta de stock.
+ *
+ * Recibe un JSON con el id del producto y devuelve cuántas unidades quedan.
+ *
+ * Entrada esperada:
+ * {
+ *   "id_producto": 1
+ * }
+ *
+ * Se conecta con:
+ * - conexion_mysql.php para obtener una conexión PDO.
+ * - Tabla producto para saber el nombre.
+ * - Tabla stock para saber las unidades disponibles.
+ *
+ * Lo consume:
+ * - tienda.html, función JavaScript consultarStock().
+ */
+
 header("Content-Type: application/json; charset=utf-8");
 
 require_once "conexion_mysql.php";
 
+// Leemos el cuerpo raw de la petición y lo convertimos de JSON a array PHP.
 $raw = file_get_contents("php://input");
 $data = json_decode($raw, true);
 
 $idProducto = $data["id_producto"] ?? null;
 
+// Validación básica antes de consultar la base de datos.
 if (!$idProducto || !is_numeric($idProducto)) {
     http_response_code(400);
 
@@ -21,6 +42,7 @@ if (!$idProducto || !is_numeric($idProducto)) {
 try {
     $pdo = obtenerPDO();
 
+    // Unimos producto y stock para devolver nombre y unidades en una consulta.
     $sql = "
         SELECT p.id_producto, p.nombre, s.unidades
         FROM producto p
@@ -35,6 +57,7 @@ try {
 
     $producto = $stmt->fetch(PDO::FETCH_ASSOC);
 
+    // Si no existe ese producto, respondemos con 404.
     if (!$producto) {
         http_response_code(404);
 
@@ -45,6 +68,7 @@ try {
         exit;
     }
 
+    // Respuesta correcta: nombre del producto y stock como número entero.
     echo json_encode([
         "ok" => true,
         "producto" => $producto["nombre"],

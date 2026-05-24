@@ -1,0 +1,34 @@
+ENUNCIADO / IDEA PARA OTRO EJERCICIO DE SERVICIOS WEB
+
+Este archivo no forma parte de la app de tienda actual. Sirve como enunciado
+para practicar la misma estructura, pero aplicada a una tienda de videojuegos.
+
+Crea una aplicación que se conecte a múltiples servicios:
+
+1. Servicio Videojuegos
+   - Devuelve toda la tabla de videojuegos.
+   - Devuelve la tabla filtrada por precio.
+
+2. Servicio Disponibilidad
+   - Recibe un id de videojuego.
+   - Devuelve todas las tiendas en las que está disponible.
+   - Recibe una cantidad de stock y la resta del total, si es posible.
+
+3. Servicio Cálculo precio
+   - Recibe precio, cantidad, descuento e IVA.
+   - Devuelve el subtotal, el importe de IVA, el importe descontado y el total a pagar.
+
+El cliente web tiene que:
+
+- Poder seleccionar el videojuego mediante un select.
+- No usar un input manual para elegir el videojuego.
+- Poder introducir manualmente:
+  - cantidad
+  - porcentaje de descuento
+  - porcentaje de IVA
+
+Relación con la app de tienda actual:
+
+- El select de videojuegos puede reutilizar la lógica de cargarProductos().
+- El servicio de disponibilidad puede parecerse a servicio_stock.php.
+- El servicio de cálculo de precio puede reutilizar la idea de devolver JSON con ok, mensaje y datos calculados.

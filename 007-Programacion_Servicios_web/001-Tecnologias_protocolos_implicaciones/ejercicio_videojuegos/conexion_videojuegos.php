@@ -12,8 +12,8 @@
  *
  * Se conecta con:
  * - Servidor: 127.0.0.1
- * - Puerto: 3307
- * - Base de datos: tienda_servicios
+ * - Puerto: 3306
+ *  * - Base de datos: tienda_servicios
  *
  * @return PDO conexión activa a la base de datos.
  * @throws PDOException si MySQL no está activo, el puerto no coincide,
@@ -21,8 +21,8 @@
  */
 function obtenerPDO(){
   $host   = "127.0.0.1";
-  $port   = "3307";
-  $dbname = "tienda_servicios";
+  $port   = "3306";
+  $dbname = "videojuegos_asir";
   $user   = "root";
   $pass   = "";
 

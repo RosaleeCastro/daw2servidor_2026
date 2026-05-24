@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tienda de videojuegos por servicios</title>
+  </head>
+  <body>
+    <!--
+      Cliente HTML preparado para el ejercicio de servicios web de videojuegos.
+
+      IMPORTANTE:
+      - Todavía no contiene JavaScript.
+      - El videojuego se seleccionará mediante un select.
+      - No se usa input manual para escribir el videojuego.
+      - Los id de los elementos quedan preparados para conectar después con JS.
+    -->
+
+    <h1>Tienda de videojuegos</h1>
+
+    <section>
+      <h2>1. Catálogo de videojuegos</h2>
+
+      <button type="button" id="btnCargarVideojuegos">
+        Cargar videojuegos
+      </button>
+
+      <br /><br />
+
+      <label for="videojuego">Videojuego:</label><br />
+      <select id="videojuego" name="videojuego" required>
+        <option value="">-- Selecciona un videojuego --</option>
+      </select>
+
+      <p id="resultadoVideojuegos"></p>
+    </section>
+
+    <hr />
+
+    <section>
+      <h2>2. Filtrar videojuegos por precio</h2>
+
+      <label for="precioMaximo">Precio máximo:</label><br />
+      <input
+        type="number"
+        id="precioMaximo"
+        name="precioMaximo"
+        min="0"
+        step="0.01"
+        placeholder="Ejemplo: 50"
+      />
+
+      <br /><br />
+
+      <button type="button" id="btnFiltrarPrecio">
+        Filtrar por precio
+      </button>
+
+      <p id="resultadoFiltroPrecio"></p>
+    </section>
+
+    <hr />
+
+    <section>
+      <h2>3. Disponibilidad</h2>
+
+      <button type="button" id="btnConsultarDisponibilidad">
+        Consultar tiendas disponibles
+      </button>
+
+      <br /><br />
+
+      <label for="cantidadStock">Cantidad para restar del stock:</label><br />
+      <input
+        type="number"
+        id="cantidadStock"
+        name="cantidadStock"
+        min="1"
+        step="1"
+        value="1"
+      />
+
+      <br /><br />
+
+      <button type="button" id="btnRestarStock">
+        Restar stock
+      </button>
+
+      <p id="resultadoDisponibilidad"></p>
+    </section>
+
+    <hr />
+
+    <section>
+      <h2>4. Cálculo de precio</h2>
+
+      <label for="cantidad">Cantidad:</label><br />
+      <input
+        type="number"
+        id="cantidad"
+        name="cantidad"
+        min="1"
+        step="1"
+        value="1"
+        required
+      />
+
+      <br /><br />
+
+      <label for="descuento">Porcentaje de descuento:</label><br />
+      <input
+        type="number"
+        id="descuento"
+        name="descuento"
+        min="0"
+        max="100"
+        step="0.01"
+        value="0"
+        required
+      />
+
+      <br /><br />
+
+      <label for="iva">Porcentaje de IVA:</label><br />
+      <input
+        type="number"
+        id="iva"
+        name="iva"
+        min="0"
+        max="100"
+        step="0.01"
+        value="21"
+        required
+      />
+
+      <br /><br />
+
+      <button type="button" id="btnCalcularPrecio">
+        Calcular precio final
+      </button>
+
+      <p id="resultadoCalculoPrecio"></p>
+    </section>
+    <script></script>
+  </body>
+</html>
