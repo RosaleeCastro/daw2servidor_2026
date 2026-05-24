@@ -141,6 +141,41 @@
 
       <p id="resultadoCalculoPrecio"></p>
     </section>
-    <script></script>
+    <script>
+      // Referencias del catálogo de videojuegos.
+      const btnCargarVideojuegos = document.getElementById(
+        "btnCargarVideojuegos"
+      );
+      const selectVideojuego = document.getElementById("videojuego");
+      const resultadoVideojuegos = document.getElementById(
+        "resultadoVideojuegos"
+      );
+
+      // Referencias del filtro por precio.
+      const inputPrecioMaximo = document.getElementById("precioMaximo");
+      const btnFiltrarPrecio = document.getElementById("btnFiltrarPrecio");
+      const resultadoFiltroPrecio = document.getElementById(
+        "resultadoFiltroPrecio"
+      );
+
+      // Referencias de disponibilidad y stock.
+      const btnConsultarDisponibilidad = document.getElementById(
+        "btnConsultarDisponibilidad"
+      );
+      const inputCantidadStock = document.getElementById("cantidadStock");
+      const btnRestarStock = document.getElementById("btnRestarStock");
+      const resultadoDisponibilidad = document.getElementById(
+        "resultadoDisponibilidad"
+      );
+
+      // Referencias del cálculo de precio.
+      const inputCantidad = document.getElementById("cantidad");
+      const inputDescuento = document.getElementById("descuento");
+      const inputIva = document.getElementById("iva");
+      const btnCalcularPrecio = document.getElementById("btnCalcularPrecio");
+      const resultadoCalculoPrecio = document.getElementById(
+        "resultadoCalculoPrecio"
+      );
+    </script>
   </body>
 </html>
