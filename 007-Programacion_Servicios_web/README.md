@@ -20,6 +20,196 @@ Sirve para encontrar rapido:
 | `004-Interface_servicio_web` | Interfaces SOAP | WSDL + PHP + cliente | XML, SOAP, WSDL |
 | `005-Consumo_Servicio_web_Herramientas_Prueba` | APIs REST y OpenAPI | REST + JSON + YAML | PHP, JS, JSON, OpenAPI |
 
+## Bloques de estudio rapido
+
+Esta seccion esta pensada para estudiar sin perderte entre tecnologias.
+
+### Bloque SOAP completo
+
+Usa este bloque cuando el examen diga:
+
+- SOAP,
+- XML,
+- WSDL,
+- `soap:Envelope`,
+- `soap:Header`,
+- `soap:Body`,
+- `soap:Fault`,
+- servicio con contrato formal.
+
+Archivos SOAP del tema:
+
+| Uso SOAP | Archivo principal | Que mirar |
+| --- | --- | --- |
+| SOAP basico de calculadora | `002-.../calculadora-soap.php` | Leer XML, detectar operacion, responder XML. |
+| Cliente SOAP desde HTML | `002-.../calculadora-soap.html` | Crear XML SOAP y enviarlo con `fetch()`. |
+| Contrato WSDL | `002-.../calculadora.wsdl` | `types`, `message`, `portType`, `binding`, `service`. |
+| SOAP con cabecera de sesion | `003-.../prestamos.php` | Leer `soap:Header` y validar token. |
+| SOAP con respuesta de varios campos | `003-.../prestamos.php` | Devolver `puede_prestar`, `mensaje`, `dias_maximos`. |
+| SOAP con `requestId` | `004-.../envioPostal.php` | Leer datos tecnicos de cabecera. |
+| SOAP con validaciones | `004-.../acceso_examen/accesoExamen.php` | Validar campos y devolver `soap:Fault`. |
+
+Plantilla mental SOAP:
+
+```text
+HTML crea XML
+  -> fetch(..., Content-Type: text/xml)
+  -> PHP lee php://input
+  -> DOMDocument carga XML
+  -> DOMXPath busca nodos
+  -> PHP aplica regla de negocio
+  -> PHP responde XML SOAP
+```
+
+Funciones/patrones SOAP que puedes copiar:
+
+| Patron | Archivo donde verlo | Para que sirve |
+| --- | --- | --- |
+| `file_get_contents("php://input")` | `calculadora-soap.php`, `prestamos.php`, `accesoExamen.php` | Leer el XML recibido. |
+| `DOMDocument` | `calculadora-soap.php` | Convertir texto XML en documento navegable. |
+| `DOMXPath` | `prestamos.php`, `accesoExamen.php` | Buscar nodos como `token`, `dni`, `edad`. |
+| `//*[local-name()='nombreNodo']` | `prestamos.php` | Buscar nodos sin depender del prefijo XML. |
+| `responderSOAP()` | `calculadora-soap.php` | Devolver respuesta SOAP normal. |
+| `responderFault()` | `calculadora-soap.php`, `prestamos.php`, `accesoExamen.php` | Devolver error SOAP formal. |
+| `htmlspecialchars($texto, ENT_XML1)` | Servicios SOAP | Escapar texto antes de meterlo en XML. |
+
+### Bloque REST + JSON completo
+
+Usa este bloque cuando el examen diga:
+
+- API REST,
+- endpoint,
+- `GET`, `POST`, `PATCH`, `DELETE`,
+- JSON,
+- `fetch()`,
+- codigo HTTP.
+
+Archivos REST del tema:
+
+| Uso REST | Archivo principal | Que mirar |
+| --- | --- | --- |
+| Servicios simples de tienda | `001-.../servicio_productos.php` | PHP devuelve JSON desde MySQL. |
+| Stock y pedido | `001-.../servicio_stock.php`, `servicio_pedidos.php` | Consultar y modificar datos. |
+| API REST con JSON local | `005-.../api_libros/apiRestLibros.php` | CRUD sin base de datos. |
+| API REST con MySQL | `005-.../api_videojuegos/apiVideojuegos.php` | CRUD con PDO. |
+| API REST con PATCH dinamico | `005-.../apiEstudios/apiEstudios.php` | Editar solo campos enviados. |
+| API REST con filtros y JSON local | `005-.../gestorTareas_api/apiTareas.php` | Filtrar por query string. |
+
+Plantilla mental REST:
+
+```text
+HTML/JS
+  -> fetch()
+  -> api.php/recurso
+  -> PHP detecta metodo HTTP
+  -> PHP detecta ruta
+  -> PHP lee JSON si hace falta
+  -> PHP responde JSON + codigo HTTP
+```
+
+Funciones/patrones REST que puedes copiar:
+
+| Patron | Archivo donde verlo | Para que sirve |
+| --- | --- | --- |
+| `responder($codigo, $datos)` | `api_libros`, `apiEstudios`, `gestorTareas_api` | Responder JSON de forma uniforme. |
+| `leerJSONBody()` | `api_libros`, `apiEstudios`, `gestorTareas_api` | Leer el JSON del cliente. |
+| `$_SERVER["REQUEST_METHOD"]` | APIs REST | Saber si es `GET`, `POST`, `PATCH` o `DELETE`. |
+| `PATH_INFO` | APIs REST | Leer rutas como `/libros/1`. |
+| `obtenerRuta()` | `gestorTareas_api/apiTareas.php` | Alternativa robusta para XAMPP usando `?ruta=`. |
+| `URLSearchParams` | Clientes HTML REST | Construir filtros como `?estado=pendiente`. |
+
+### Bloque YAML/OpenAPI completo
+
+Usa este bloque cuando el examen diga:
+
+- documentar API,
+- OpenAPI,
+- Swagger,
+- YAML,
+- contrato REST.
+
+Archivos YAML:
+
+| API | YAML |
+| --- | --- |
+| Libros | `005-.../api_libros/openApiLibros.yaml` |
+| Videojuegos | `005-.../api_videojuegos/openApiVideojuegos.yaml` |
+| Estudios | `005-.../apiEstudios/openApiEstudio.yaml` |
+| Tareas | `005-.../gestorTareas_api/openApiTareas.yaml` |
+
+Recuerda:
+
+```text
+El YAML no ejecuta la API.
+El YAML explica como se usa la API.
+```
+
+Partes importantes de OpenAPI:
+
+| Parte | Para que sirve |
+| --- | --- |
+| `openapi` | Version del estandar. |
+| `info` | Nombre, version y descripcion de la API. |
+| `servers` | URL base. |
+| `paths` | Rutas disponibles. |
+| `parameters` | Datos que llegan por URL. |
+| `requestBody` | JSON enviado en `POST` o `PATCH`. |
+| `responses` | Respuestas posibles. |
+| `components/schemas` | Modelos reutilizables. |
+
+### Bloque MySQL/PDO completo
+
+Usa este bloque cuando el examen diga:
+
+- base de datos,
+- MySQL,
+- PDO,
+- consulta preparada,
+- `SELECT`, `INSERT`, `UPDATE`, `DELETE`.
+
+Archivos con PDO:
+
+| Archivo | Uso |
+| --- | --- |
+| `001-.../conexion_mysql.php` | Conexion reusable para tienda. |
+| `001-.../ejercicio_videojuegos/conexion_videojuegos.php` | Conexion reusable para videojuegos. |
+| `005-.../api_videojuegos/apiVideojuegos.php` | API REST con MySQL. |
+| `005-.../apiEstudios/apiEstudios.php` | API REST con MySQL y PATCH dinamico. |
+
+Plantilla PDO:
+
+```php
+$pdo = new PDO(
+    "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4",
+    $user,
+    $pass
+);
+
+$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+```
+
+### Bloque JSON local completo
+
+Usa este bloque cuando el examen no pida base de datos.
+
+Archivos con JSON local:
+
+| Archivo | Uso |
+| --- | --- |
+| `005-.../api_libros/apiRestLibros.php` | CRUD de libros con archivo JSON. |
+| `005-.../gestorTareas_api/apiTareas.php` | CRUD de tareas con archivo JSON y filtros. |
+
+Plantilla:
+
+```php
+$datos = json_decode(file_get_contents($archivo), true) ?? [];
+
+file_put_contents(
+    $archivo,
+    json_encode($datos, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
+);
+```
+
 ## Si el examen pide REST
 
 Usa esta estructura mental:
@@ -644,4 +834,3 @@ echo '<?xml version="1.0" encoding="UTF-8"?>'
 | "consume desde cliente" | HTML + fetch |
 | "base MySQL" | PDO + prepare/execute |
 | "sin base de datos" | archivo JSON |
-
