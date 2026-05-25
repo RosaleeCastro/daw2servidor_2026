@@ -2,39 +2,48 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <title>Calculadora SOAP didáctica</title>
+    <title>Calculadora SOAP didactica</title>
   </head>
   <body>
-    <h1>Calculadora SOAP didáctica</h1>
+    <!--
+      Cliente web para probar el servicio SOAP calculadora-soap.php.
+
+      Este HTML genera manualmente una peticion SOAP en XML y la envia por POST.
+      Despues recibe XML, lo interpreta y muestra el resultado.
+    -->
+
+    <h1>Calculadora SOAP didactica</h1>
 
     <p>
-      Este ejemplo envía una petición SOAP en XML a un servidor PHP usando HTTP
+      Este ejemplo envia una peticion SOAP en XML a un servidor PHP usando HTTP
       POST.
     </p>
 
-    <label for="operacion">Operación:</label><br />
+    <label for="operacion">Operacion:</label><br />
     <select id="operacion">
       <option value="sumar">sumar</option>
       <option value="restar">restar</option>
+      <option value="multiplicar">multiplicar</option>
+      <option value="dividir">dividir</option>
     </select>
     <br /><br />
 
-    <label for="a">Primer número:</label><br />
+    <label for="a">Primer numero:</label><br />
     <input type="number" id="a" value="8" />
     <br /><br />
 
-    <label for="b">Segundo número:</label><br />
+    <label for="b">Segundo numero:</label><br />
     <input type="number" id="b" value="3" />
     <br /><br />
 
-    <button id="btnEnviar">Enviar petición SOAP</button>
+    <button id="btnEnviar">Enviar peticion SOAP</button>
     <br /><br />
 
     <p>
       <a href="calculadora.wsdl" target="_blank">Ver WSDL del servicio</a>
     </p>
 
-    <h2>Petición SOAP enviada</h2>
+    <h2>Peticion SOAP enviada</h2>
     <pre id="peticion"></pre>
 
     <h2>Respuesta SOAP recibida</h2>
@@ -44,6 +53,7 @@
     <p id="resultado"></p>
 
     <script>
+      // El boton construye y envia la peticion SOAP.
       document
         .getElementById("btnEnviar")
         .addEventListener("click", async () => {
@@ -51,6 +61,17 @@
           const a = document.getElementById("a").value;
           const b = document.getElementById("b").value;
 
+          /*
+           * Mensaje SOAP que se enviara al servidor.
+           *
+           * Toda peticion SOAP tiene:
+           * - soap:Envelope
+           * - soap:Body
+           * - una operacion dentro del Body
+           *
+           * La operacion cambia dinamicamente segun el select:
+           * <sumar>, <restar>, <multiplicar> o <dividir>.
+           */
           const xmlSOAP = `<?xml version="1.0" encoding="UTF-8"?>
                 <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
                 <soap:Body>
@@ -66,6 +87,10 @@
           document.getElementById("resultado").innerText = "";
 
           try {
+            /*
+             * Enviamos XML, no JSON.
+             * Por eso Content-Type es text/xml.
+             */
             const respuesta = await fetch("calculadora-soap.php", {
               method: "POST",
               headers: {
@@ -75,17 +100,33 @@
               body: xmlSOAP,
             });
 
+            // Leemos la respuesta como texto porque es XML.
             const textoRespuesta = await respuesta.text();
             document.getElementById("respuesta").innerText = textoRespuesta;
 
-            // Interpretar la respuesta XML
+            // Convertimos el texto XML en un documento navegable.
             const parser = new DOMParser();
             const xml = parser.parseFromString(textoRespuesta, "text/xml");
 
+            // Si todo ha ido bien, habra una etiqueta <resultado>.
             const nodoResultado = xml.getElementsByTagName("resultado")[0];
+
+            /*
+             * La division devuelve tambien <resto>.
+             * En suma, resta y multiplicacion este nodo no existira.
+             */
+            const nodoResto = xml.getElementsByTagName("resto")[0];
+
+            // Si algo ha fallado, SOAP devuelve <faultstring>.
             const nodoFault = xml.getElementsByTagName("faultstring")[0];
 
-            if (nodoResultado) {
+            if (nodoResultado && nodoResto) {
+              document.getElementById("resultado").innerText =
+                "Resultado de la division: " +
+                nodoResultado.textContent +
+                "\nResto: " +
+                nodoResto.textContent;
+            } else if (nodoResultado) {
               document.getElementById("resultado").innerText =
                 "Resultado devuelto por el servicio: " +
                 nodoResultado.textContent;

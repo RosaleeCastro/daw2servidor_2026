@@ -1,0 +1,42 @@
+EJERCICIO: SERVICIO SOAP DE PRESTAMOS
+
+Objetivo original:
+
+Generar un servicio web y un cliente que lo consuma a partir del WSDL de
+prestamo.
+
+Requisito especial:
+
+- Incorporar cabeceras de sesion en el SOAP.
+
+Estado: IMPLEMENTADO
+
+Archivos:
+
+- prestamos.wsdl
+  Contrato del servicio. Define la operacion consultarPrestamo y la cabecera
+  SOAP sesion/token.
+
+- prestamos.php
+  Servidor SOAP. Recibe XML, valida el token de sesion, lee dni y codigoLibro,
+  aplica reglas de prestamo y responde XML SOAP.
+
+- prestamos.html
+  Cliente web. Construye una peticion SOAP con soap:Header y soap:Body, la
+  envia a prestamos.php e interpreta la respuesta.
+
+Token didactico de sesion:
+
+- ABC123
+
+Codigos de libro de prueba:
+
+- LIB001: prestable durante 15 dias.
+- LIB002: prestable durante 10 dias.
+- REF001: no prestable, solo consulta en sala.
+- NOEXISTE: simula un codigo de libro no encontrado.
+
+Usuarios sancionados de prueba:
+
+- 00000000X
+- 11111111A

@@ -1,0 +1,29 @@
+EJERCICIO API ESTUDIOS
+
+Objetivo:
+
+Generar un servicio de estudios y un cliente que lo consuma a partir de la
+especificacion OpenAPI.
+
+Requisito:
+
+- El servicio consume datos de la base MySQL videojuegos_asir.
+
+Estado: IMPLEMENTADO
+
+Archivos:
+
+- apiEstudios.php
+  Servidor REST conectado a la tabla estudio.
+
+- apiEstudios.html
+  Cliente web de prueba que consume la API con fetch().
+
+- openApiEstudio.yaml
+  Documentacion OpenAPI de la API.
+
+Nota:
+
+La especificacion original hablaba de fecha_fundacion y activo, pero la tabla
+real de MySQL contiene fundado_en y web. La API se ha adaptado a la estructura
+real de la base de datos.

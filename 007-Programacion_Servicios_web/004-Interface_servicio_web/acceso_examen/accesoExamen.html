@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Acceso a examen SOAP</title>
+  </head>
+  <body>
+    <!--
+      Cliente web del servicio SOAP accesoExamen.php.
+
+      Esta pagina construye una peticion SOAP completa:
+      - soap:Envelope
+      - soap:Header con requestId
+      - soap:Body con validarAccesoExamen
+
+      Despues envia el XML al servidor PHP y muestra:
+      - XML enviado
+      - XML recibido
+      - resultado interpretado
+    -->
+
+    <h1>Validacion de acceso a examen</h1>
+
+    <p>
+      El alumno podra acceder si tiene mas de 16 anos y esta matriculado.
+    </p>
+
+    <label for="nombre">Nombre:</label><br />
+    <input type="text" id="nombre" value="Ana" />
+    <br /><br />
+
+    <label for="edad">Edad:</label><br />
+    <input type="number" id="edad" min="0" step="1" value="18" />
+    <br /><br />
+
+    <label>
+      <input type="checkbox" id="matriculado" checked />
+      Esta matriculado
+    </label>
+    <br /><br />
+
+    <button type="button" id="btnEnviar">Enviar peticion SOAP</button>
+    <br /><br />
+
+    <p>
+      <a href="accesoExamen.wsdl" target="_blank">Ver WSDL del servicio</a>
+    </p>
+
+    <h2>Peticion SOAP enviada</h2>
+    <pre id="peticion"></pre>
+
+    <h2>Respuesta SOAP recibida</h2>
+    <pre id="respuesta"></pre>
+
+    <h2>Resultado interpretado</h2>
+    <p id="resultado"></p>
+
+    <script>
+      // Referencias a los controles del formulario.
+      const inputNombre = document.getElementById("nombre");
+      const inputEdad = document.getElementById("edad");
+      const inputMatriculado = document.getElementById("matriculado");
+      const btnEnviar = document.getElementById("btnEnviar");
+
+      // Referencias a las zonas donde mostramos XML y resultado.
+      const peticion = document.getElementById("peticion");
+      const respuesta = document.getElementById("respuesta");
+      const resultado = document.getElementById("resultado");
+
+      btnEnviar.addEventListener("click", validarAccesoExamen);
+
+      async function validarAccesoExamen() {
+        const nombre = inputNombre.value.trim();
+        const edad = inputEdad.value;
+        const matriculado = inputMatriculado.checked ? "true" : "false";
+
+        if (nombre === "") {
+          resultado.innerText = "Debes escribir un nombre.";
+          return;
+        }
+
+        if (edad === "" || parseInt(edad) < 0) {
+          resultado.innerText = "Debes escribir una edad valida.";
+          return;
+        }
+
+        /*
+         * requestId identifica esta peticion.
+         *
+         * No es necesario para la regla de acceso, pero es util para practicar
+         * SOAP Header igual que en el ejemplo envioPostal.
+         */
+        const requestId = "EXAM-" + Date.now();
+
+        /*
+         * Construimos el XML SOAP completo.
+         *
+         * Header:
+         * - clienteInfo
+         * - aplicacion
+         * - requestId
+         *
+         * Body:
+         * - validarAccesoExamen
+         * - nombre
+         * - edad
+         * - matriculado
+         */
+        const xmlSOAP = `<?xml version="1.0" encoding="UTF-8"?>
+          <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+            <soap:Header>
+              <clienteInfo>
+                <aplicacion>DAW2</aplicacion>
+                <requestId>${requestId}</requestId>
+              </clienteInfo>
+            </soap:Header>
+            <soap:Body>
+              <validarAccesoExamen>
+                <nombre>${nombre}</nombre>
+                <edad>${edad}</edad>
+                <matriculado>${matriculado}</matriculado>
+              </validarAccesoExamen>
+            </soap:Body>
+          </soap:Envelope>`;
+
+        peticion.innerText = xmlSOAP;
+        respuesta.innerText = "Enviando...";
+        resultado.innerText = "";
+
+        try {
+          const respuestaHttp = await fetch("accesoExamen.php", {
+            method: "POST",
+            headers: {
+              "Content-Type": "text/xml; charset=utf-8",
+              Accept: "text/xml",
+            },
+            body: xmlSOAP,
+          });
+
+          const textoRespuesta = await respuestaHttp.text();
+          respuesta.innerText = textoRespuesta;
+
+          /*
+           * Convertimos la respuesta de texto a XML para poder buscar nodos.
+           */
+          const parser = new DOMParser();
+          const xml = parser.parseFromString(textoRespuesta, "text/xml");
+
+          const parserError = xml.getElementsByTagName("parsererror")[0];
+
+          if (parserError) {
+            resultado.innerText =
+              "La respuesta no es XML valido. Revisa el bloque de respuesta.";
+            return;
+          }
+
+          /*
+           * Buscamos por local-name() para que funcione aunque haya namespaces.
+           */
+          const buscarNodo = (nombreNodo) =>
+            xml.evaluate(
+              "//*[local-name()='" + nombreNodo + "']",
+              xml,
+              null,
+              XPathResult.FIRST_ORDERED_NODE_TYPE,
+              null
+            ).singleNodeValue;
+
+          const fault = buscarNodo("faultstring");
+
+          if (fault) {
+            resultado.innerText = "Error SOAP: " + fault.textContent;
+            return;
+          }
+
+          const permitidoNode = buscarNodo("permitido");
+          const mensajeNode = buscarNodo("mensaje");
+          const requestIdNode = buscarNodo("requestId");
+
+          if (permitidoNode && mensajeNode) {
+            let texto = "";
+            texto +=
+              "Permitido: " +
+              (permitidoNode.textContent === "true" ? "SI" : "NO") +
+              "\n";
+            texto += "Mensaje: " + mensajeNode.textContent;
+
+            if (requestIdNode) {
+              texto += "\nRequestId devuelto: " + requestIdNode.textContent;
+            }
+
+            resultado.innerText = texto;
+          } else {
+            resultado.innerText = "No se pudo interpretar la respuesta SOAP.";
+          }
+        } catch (error) {
+          respuesta.innerText = "Error de red";
+          resultado.innerText = String(error);
+        }
+      }
+    </script>
+  </body>
+</html>

@@ -1,4 +1,17 @@
 <?php
+/*
+ * API REST de videojuegos.
+ *
+ * Este archivo es el servidor de la API. Recibe peticiones HTTP, consulta o
+ * modifica la base de datos MySQL videojuegos_asir y responde siempre JSON.
+ *
+ * Rutas principales:
+ * - GET    apiVideojuegos.php/videojuegos
+ * - GET    apiVideojuegos.php/videojuegos/{id}
+ * - POST   apiVideojuegos.php/videojuegos
+ * - PATCH  apiVideojuegos.php/videojuegos/{id}
+ * - DELETE apiVideojuegos.php/videojuegos/{id}
+ */
 header("Content-Type: application/json; charset=utf-8");
 
 // ----------------------------------------------------
@@ -112,6 +125,14 @@ try {
 
     $metodo = $_SERVER["REQUEST_METHOD"];
 
+    /*
+     * En REST el metodo HTTP y la ruta deciden que accion se ejecuta.
+     *
+     * Ejemplo:
+     * - GET /videojuegos entra en el listado.
+     * - GET /videojuegos/3 consulta el id 3.
+     * - POST /videojuegos crea un videojuego.
+     */
     $ruta = obtenerRuta();
     $partesRuta = explode("/", trim($ruta, "/"));
 
@@ -134,6 +155,10 @@ try {
     // ?multijugador=true
     // ----------------------------------------------------
     if ($metodo === "GET" && $id === null) {
+        /*
+         * WHERE 1 = 1 permite ir agregando filtros opcionales con AND sin
+         * tener que comprobar si es el primer filtro o no.
+         */
         $sql = "
             SELECT 
                 v.id_videojuego AS id,
@@ -234,6 +259,7 @@ try {
     // Crea un videojuego nuevo
     // ----------------------------------------------------
     if ($metodo === "POST" && $id === null) {
+        // POST recibe JSON en el body y crea una fila nueva en videojuego.
         $data = leerJSONBody();
 
         $titulo = trim($data["titulo"] ?? "");
@@ -293,6 +319,10 @@ try {
     // Actualiza parcialmente un videojuego
     // ----------------------------------------------------
     if ($metodo === "PATCH" && $id !== null) {
+        /*
+         * PATCH actualiza solo los campos recibidos.
+         * Por eso se construye dinamicamente el array $campos.
+         */
         if (!is_numeric($id)) {
             // 400 Bad Request: el ID enviado no es válido.
             responder(400, [

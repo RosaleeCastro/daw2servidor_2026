@@ -1,4 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+    WSDL del servicio SOAP de prestamos de biblioteca.
+
+    Este contrato declara:
+    - una cabecera SOAP de sesion con token,
+    - una operacion consultarPrestamo,
+    - los datos que recibe,
+    - los datos que devuelve,
+    - la URL donde se publica el servicio.
+-->
 <definitions
     name="ServicioBiblioteca"
     targetNamespace="urn:ServicioBiblioteca"
@@ -6,10 +16,30 @@
     xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     xmlns="http://schemas.xmlsoap.org/wsdl/">
-    
+
     <types>
         <xsd:schema targetNamespace="urn:ServicioBiblioteca">
-            
+
+            <!--
+                Cabecera de sesion.
+
+                Esta estructura viaja dentro de soap:Header.
+                El servidor espera un token con valor ABC123.
+            -->
+            <xsd:element name="sesion">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="token" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
+            <!--
+                Peticion principal del servicio.
+
+                dni identifica al usuario.
+                codigoLibro identifica el libro que quiere pedir prestado.
+            -->
             <xsd:element name="consultarPrestamo">
                 <xsd:complexType>
                     <xsd:sequence>
@@ -18,7 +48,14 @@
                     </xsd:sequence>
                 </xsd:complexType>
             </xsd:element>
-            
+
+            <!--
+                Respuesta del servicio.
+
+                puede_prestar indica si se permite el prestamo.
+                mensaje explica el motivo.
+                dias_maximos indica cuantos dias puede durar el prestamo.
+            -->
             <xsd:element name="consultarPrestamoResponse">
                 <xsd:complexType>
                     <xsd:sequence>
@@ -28,31 +65,43 @@
                     </xsd:sequence>
                 </xsd:complexType>
             </xsd:element>
-            
+
         </xsd:schema>
     </types>
-    
+
+    <!-- Mensaje que se usara como cabecera SOAP. -->
+    <message name="SesionHeader">
+        <part name="sesion" element="tns:sesion"/>
+    </message>
+
+    <!-- Mensaje de entrada de la operacion. -->
     <message name="consultarPrestamoRequest">
         <part name="parameters" element="tns:consultarPrestamo"/>
     </message>
-    
+
+    <!-- Mensaje de salida de la operacion. -->
     <message name="consultarPrestamoResponse">
         <part name="parameters" element="tns:consultarPrestamoResponse"/>
     </message>
-    
+
     <portType name="ServicioBibliotecaPortType">
         <operation name="consultarPrestamo">
             <input message="tns:consultarPrestamoRequest"/>
             <output message="tns:consultarPrestamoResponse"/>
         </operation>
     </portType>
-    
+
     <binding name="ServicioBibliotecaBinding" type="tns:ServicioBibliotecaPortType">
         <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
-        
+
         <operation name="consultarPrestamo">
             <soap:operation soapAction="urn:ServicioBiblioteca#consultarPrestamo"/>
             <input>
+                <!--
+                    Declaramos que la peticion debe incluir una cabecera SOAP
+                    llamada sesion.
+                -->
+                <soap:header message="tns:SesionHeader" part="sesion" use="literal"/>
                 <soap:body use="literal"/>
             </input>
             <output>
@@ -60,11 +109,11 @@
             </output>
         </operation>
     </binding>
-    
+
     <service name="ServicioBibliotecaService">
         <port name="ServicioBibliotecaPort" binding="tns:ServicioBibliotecaBinding">
-            <soap:address location="http://localhost/TU_CARPETA/servicio-biblioteca.php"/>
+            <soap:address location="http://localhost/daw2servidor_RCT/daw2servidor_2026/007-Programacion_Servicios_web/003-Generacion_de%20_un_servicio_web/prestamos.php"/>
         </port>
     </service>
-    
+
 </definitions>

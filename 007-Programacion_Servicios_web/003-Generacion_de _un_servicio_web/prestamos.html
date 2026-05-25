@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Servicio SOAP de prestamos</title>
+  </head>
+  <body>
+    <!--
+      Cliente web para consumir el servicio SOAP prestamos.php.
+
+      Este cliente genera una peticion SOAP con:
+      - soap:Header: cabecera de sesion con token.
+      - soap:Body: operacion consultarPrestamo.
+    -->
+
+    <h1>Servicio SOAP de prestamos</h1>
+
+    <p>
+      Este cliente consulta si un usuario puede llevarse prestado un libro.
+      La peticion incluye una cabecera SOAP de sesion.
+    </p>
+
+    <label for="token">Token de sesion:</label><br />
+    <input type="text" id="token" value="ABC123" />
+    <br /><br />
+
+    <label for="dni">DNI del usuario:</label><br />
+    <input type="text" id="dni" value="12345678A" />
+    <br /><br />
+
+    <label for="codigoLibro">Codigo del libro:</label><br />
+    <select id="codigoLibro">
+      <option value="LIB001">LIB001 - Introduccion a SOAP</option>
+      <option value="LIB002">LIB002 - PHP y servicios web</option>
+      <option value="REF001">REF001 - Enciclopedia de referencia</option>
+      <option value="NOEXISTE">NOEXISTE - Codigo inexistente</option>
+    </select>
+    <br /><br />
+
+    <button type="button" id="btnConsultar">Consultar prestamo</button>
+    <br /><br />
+
+    <p>
+      <a href="prestamos.wsdl" target="_blank">Ver WSDL del servicio</a>
+    </p>
+
+    <h2>Peticion SOAP enviada</h2>
+    <pre id="peticion"></pre>
+
+    <h2>Respuesta SOAP recibida</h2>
+    <pre id="respuesta"></pre>
+
+    <h2>Resultado interpretado</h2>
+    <p id="resultado"></p>
+
+    <script>
+      const inputToken = document.getElementById("token");
+      const inputDni = document.getElementById("dni");
+      const selectCodigoLibro = document.getElementById("codigoLibro");
+      const btnConsultar = document.getElementById("btnConsultar");
+      const peticion = document.getElementById("peticion");
+      const respuesta = document.getElementById("respuesta");
+      const resultado = document.getElementById("resultado");
+
+      btnConsultar.addEventListener("click", consultarPrestamo);
+
+      async function consultarPrestamo() {
+        const token = inputToken.value.trim();
+        const dni = inputDni.value.trim();
+        const codigoLibro = selectCodigoLibro.value;
+
+        if (token === "") {
+          resultado.innerText = "Debes indicar un token de sesion.";
+          return;
+        }
+
+        if (dni === "") {
+          resultado.innerText = "Debes indicar un DNI.";
+          return;
+        }
+
+        /*
+         * Construimos la peticion SOAP.
+         *
+         * Diferencia importante respecto a la calculadora:
+         * aqui incorporamos soap:Header con el token de sesion.
+         */
+        const xmlSOAP = `<?xml version="1.0" encoding="UTF-8"?>
+          <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+            <soap:Header>
+              <sesion>
+                <token>${token}</token>
+              </sesion>
+            </soap:Header>
+            <soap:Body>
+              <consultarPrestamo>
+                <dni>${dni}</dni>
+                <codigoLibro>${codigoLibro}</codigoLibro>
+              </consultarPrestamo>
+            </soap:Body>
+          </soap:Envelope>`;
+
+        peticion.innerText = xmlSOAP;
+        respuesta.innerText = "Enviando...";
+        resultado.innerText = "";
+
+        try {
+          const respuestaHttp = await fetch("prestamos.php", {
+            method: "POST",
+            headers: {
+              "Content-Type": "text/xml; charset=utf-8",
+              Accept: "text/xml",
+            },
+            body: xmlSOAP,
+          });
+
+          const textoRespuesta = await respuestaHttp.text();
+          respuesta.innerText = textoRespuesta;
+
+          /*
+           * Diagnosticos habituales:
+           *
+           * - Si aparece codigo PHP, el archivo se ha abierto directamente
+           *   como fichero y Apache/PHP no lo esta ejecutando.
+           * - Si aparece HTML, normalmente es una pagina de error de Apache,
+           *   XAMPP o PHP.
+           */
+          const textoLimpio = textoRespuesta.trim();
+
+          if (textoLimpio.startsWith("<?php")) {
+            resultado.innerText =
+              "El navegador ha recibido codigo PHP sin ejecutar. Abre prestamos.html desde http://localhost, no como archivo local.";
+            return;
+          }
+
+          if (
+            textoLimpio.toLowerCase().startsWith("<!doctype html") ||
+            textoLimpio.toLowerCase().startsWith("<html") ||
+            textoLimpio.includes("<b>Warning</b>") ||
+            textoLimpio.includes("<b>Fatal error</b>")
+          ) {
+            resultado.innerText =
+              "El servidor ha devuelto HTML o un error PHP, no XML SOAP. Revisa el bloque 'Respuesta SOAP recibida'.";
+            return;
+          }
+
+          const parser = new DOMParser();
+          const xml = parser.parseFromString(textoRespuesta, "text/xml");
+
+          const nodoParserError = xml.getElementsByTagName("parsererror")[0];
+
+          if (nodoParserError) {
+            resultado.innerText =
+              "La respuesta no es XML valido. Revisa el contenido mostrado en 'Respuesta SOAP recibida'.";
+            return;
+          }
+
+          /*
+           * Buscamos por localName para que funcione aunque algun nodo venga
+           * con namespace o prefijo XML.
+           */
+          const buscarNodo = (nombre) =>
+            xml.evaluate(
+              "//*[local-name()='" + nombre + "']",
+              xml,
+              null,
+              XPathResult.FIRST_ORDERED_NODE_TYPE,
+              null
+            ).singleNodeValue;
+
+          const nodoPuedePrestar = buscarNodo("puede_prestar");
+          const nodoMensaje = buscarNodo("mensaje");
+          const nodoDias = buscarNodo("dias_maximos");
+          const nodoFault = buscarNodo("faultstring");
+
+          if (nodoFault) {
+            resultado.innerText = "Error SOAP: " + nodoFault.textContent;
+            return;
+          }
+
+          if (nodoPuedePrestar && nodoMensaje && nodoDias) {
+            const puedePrestar = nodoPuedePrestar.textContent === "true";
+
+            resultado.innerText =
+              "Puede prestar: " +
+              (puedePrestar ? "SI" : "NO") +
+              "\nMensaje: " +
+              nodoMensaje.textContent +
+              "\nDias maximos: " +
+              nodoDias.textContent;
+            return;
+          }
+
+          resultado.innerText = "No se pudo interpretar la respuesta.";
+        } catch (error) {
+          respuesta.innerText = "Error de red";
+          resultado.innerText = String(error);
+        }
+      }
+    </script>
+  </body>
+</html>

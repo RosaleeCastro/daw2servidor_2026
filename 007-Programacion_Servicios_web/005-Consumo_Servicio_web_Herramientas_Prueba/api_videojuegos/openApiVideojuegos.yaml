@@ -1,5 +1,9 @@
 openapi: 3.0.3
 
+# Documentacion OpenAPI de la API REST de videojuegos.
+# Este archivo no ejecuta codigo. Sirve para describir rutas, parametros,
+# cuerpos JSON y respuestas de la API.
+
 info:
   title: API REST Videojuegos
   version: 1.0.0

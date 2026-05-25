@@ -16,7 +16,7 @@
       Este archivo no se conecta directamente a MySQL.
       Se comunica con estos servicios PHP mediante fetch():
       - servicio_videojuegos.php: listar videojuegos y filtrar por precio.
-      - servicio_disponinlidad.php: consultar tiendas y restar stock.
+      - servicio_disponibilidad.php: consultar tiendas y restar stock.
       - servicio_calculo_precio.php: calcular subtotal, descuento, IVA y total.
 
       El videojuego se elige con un select, no con un input manual.
@@ -358,7 +358,7 @@
        * Consulta en qué tiendas está disponible el videojuego seleccionado.
        *
        * Conecta con:
-       * - servicio_disponinlidad.php
+       * - servicio_disponibilidad.php
        *
        * Envía JSON:
        * {
@@ -424,7 +424,7 @@
        * Resta unidades del stock del videojuego seleccionado.
        *
        * Conecta con:
-       * - servicio_disponinlidad.php
+       * - servicio_disponibilidad.php
        *
        * Envía JSON:
        * {

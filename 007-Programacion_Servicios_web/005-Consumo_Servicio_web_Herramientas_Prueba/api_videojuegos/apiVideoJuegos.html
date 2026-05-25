@@ -5,6 +5,14 @@
     <title>Cliente REST Videojuegos</title>
   </head>
   <body>
+    <!--
+      Cliente de prueba para apiVideojuegos.php.
+
+      Esta pagina no accede directamente a MySQL. Hace peticiones HTTP a la API
+      REST usando fetch() y muestra la peticion y la respuesta para estudiar el
+      funcionamiento de GET, POST, PATCH y DELETE.
+    -->
+
     <h1>Cliente REST - Videojuegos</h1>
 
     <h2>1. Listar videojuegos</h2>
@@ -116,6 +124,7 @@
       const respuesta = document.getElementById("respuesta");
 
       function mostrarPeticion(metodo, url, body = null) {
+        // Muestra el metodo, la URL y el body JSON que se enviara.
         let texto = metodo + " " + url;
 
         if (body !== null) {
@@ -126,6 +135,7 @@
       }
 
       async function mostrarRespuesta(resp) {
+        // Lee la respuesta como texto para mostrar JSON, errores o respuestas vacias.
         const texto = await resp.text();
 
         respuesta.innerText =
@@ -137,6 +147,8 @@
 
       // ----------------------------------------------------
       // GET /videojuegos
+      // Lista videojuegos y permite filtros por query string:
+      // ?precioMax=60&pegiMax=18&multijugador=true
       // ----------------------------------------------------
       document
         .getElementById("btnListar")
@@ -183,6 +195,7 @@
 
       // ----------------------------------------------------
       // GET /videojuegos/{id}
+      // Consulta un videojuego concreto a partir de su identificador.
       // ----------------------------------------------------
       document
         .getElementById("btnConsultar")
@@ -204,6 +217,7 @@
 
       // ----------------------------------------------------
       // POST /videojuegos
+      // Crea un videojuego nuevo enviando un JSON en el body.
       // ----------------------------------------------------
       document
         .getElementById("btnCrear")
@@ -237,6 +251,7 @@
 
       // ----------------------------------------------------
       // PATCH /videojuegos/{id}
+      // Actualiza parcialmente un videojuego. No hace falta enviar todos los campos.
       // ----------------------------------------------------
       document
         .getElementById("btnPatch")
@@ -267,6 +282,7 @@
 
       // ----------------------------------------------------
       // DELETE /videojuegos/{id}
+      // Elimina un videojuego. Si esta relacionado con otros datos, puede fallar.
       // ----------------------------------------------------
       document
         .getElementById("btnEliminar")

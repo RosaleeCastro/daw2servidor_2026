@@ -1,4 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+    WSDL = Web Services Description Language.
+
+    Este archivo es el contrato del servicio SOAP.
+    Describe:
+    - que operaciones existen,
+    - que datos recibe cada operacion,
+    - que datos devuelve cada operacion,
+    - como se envian los mensajes SOAP,
+    - donde esta publicado el servicio.
+
+    Operaciones actuales:
+    - sumar: devuelve resultado.
+    - restar: devuelve resultado.
+    - multiplicar: devuelve resultado.
+    - dividir: devuelve resultado y resto.
+-->
 <definitions
     name="CalculadoraSOAP"
     targetNamespace="urn:CalculadoraSOAP"
@@ -6,10 +23,15 @@
     xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     xmlns="http://schemas.xmlsoap.org/wsdl/">
-    
+
+    <!--
+        types define la estructura de los datos XML.
+        Aqui indicamos que etiquetas espera y devuelve cada operacion.
+    -->
     <types>
         <xsd:schema targetNamespace="urn:CalculadoraSOAP">
-            
+
+            <!-- Peticion de suma: recibe a y b como numeros double. -->
             <xsd:element name="sumar">
                 <xsd:complexType>
                     <xsd:sequence>
@@ -18,7 +40,8 @@
                     </xsd:sequence>
                 </xsd:complexType>
             </xsd:element>
-            
+
+            <!-- Respuesta de suma: devuelve resultado. -->
             <xsd:element name="sumarResponse">
                 <xsd:complexType>
                     <xsd:sequence>
@@ -26,7 +49,8 @@
                     </xsd:sequence>
                 </xsd:complexType>
             </xsd:element>
-            
+
+            <!-- Peticion de resta: recibe a y b como numeros double. -->
             <xsd:element name="restar">
                 <xsd:complexType>
                     <xsd:sequence>
@@ -35,7 +59,8 @@
                     </xsd:sequence>
                 </xsd:complexType>
             </xsd:element>
-            
+
+            <!-- Respuesta de resta: devuelve resultado. -->
             <xsd:element name="restarResponse">
                 <xsd:complexType>
                     <xsd:sequence>
@@ -43,41 +68,123 @@
                     </xsd:sequence>
                 </xsd:complexType>
             </xsd:element>
-            
+
+            <!-- Peticion de multiplicacion: recibe a y b. -->
+            <xsd:element name="multiplicar">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="a" type="xsd:double"/>
+                        <xsd:element name="b" type="xsd:double"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
+            <!-- Respuesta de multiplicacion: devuelve resultado. -->
+            <xsd:element name="multiplicarResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="resultado" type="xsd:double"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
+            <!-- Peticion de division: recibe a y b. -->
+            <xsd:element name="dividir">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="a" type="xsd:double"/>
+                        <xsd:element name="b" type="xsd:double"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
+            <!--
+                Respuesta de division.
+                Es distinta porque devuelve dos datos:
+                - resultado: cociente
+                - resto: resto de la division
+            -->
+            <xsd:element name="dividirResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="resultado" type="xsd:double"/>
+                        <xsd:element name="resto" type="xsd:double"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
         </xsd:schema>
     </types>
-    
+
+    <!--
+        message relaciona cada operacion con los elementos definidos en types.
+        Es decir: que XML entra y que XML sale.
+    -->
     <message name="sumarRequest">
         <part name="parameters" element="tns:sumar"/>
     </message>
-    
+
     <message name="sumarResponse">
         <part name="parameters" element="tns:sumarResponse"/>
     </message>
-    
+
     <message name="restarRequest">
         <part name="parameters" element="tns:restar"/>
     </message>
-    
+
     <message name="restarResponse">
         <part name="parameters" element="tns:restarResponse"/>
     </message>
-    
+
+    <message name="multiplicarRequest">
+        <part name="parameters" element="tns:multiplicar"/>
+    </message>
+
+    <message name="multiplicarResponse">
+        <part name="parameters" element="tns:multiplicarResponse"/>
+    </message>
+
+    <message name="dividirRequest">
+        <part name="parameters" element="tns:dividir"/>
+    </message>
+
+    <message name="dividirResponse">
+        <part name="parameters" element="tns:dividirResponse"/>
+    </message>
+
+    <!--
+        portType es la interfaz del servicio.
+        Aqui se listan las operaciones disponibles.
+    -->
     <portType name="CalculadoraSOAPPortType">
         <operation name="sumar">
             <input message="tns:sumarRequest"/>
             <output message="tns:sumarResponse"/>
         </operation>
-        
+
         <operation name="restar">
             <input message="tns:restarRequest"/>
             <output message="tns:restarResponse"/>
         </operation>
+
+        <operation name="multiplicar">
+            <input message="tns:multiplicarRequest"/>
+            <output message="tns:multiplicarResponse"/>
+        </operation>
+
+        <operation name="dividir">
+            <input message="tns:dividirRequest"/>
+            <output message="tns:dividirResponse"/>
+        </operation>
     </portType>
-    
+
+    <!--
+        binding explica como se accede a esas operaciones.
+        En este caso usamos SOAP sobre HTTP con estilo document/literal.
+    -->
     <binding name="CalculadoraSOAPBinding" type="tns:CalculadoraSOAPPortType">
         <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
-        
+
         <operation name="sumar">
             <soap:operation soapAction="urn:CalculadoraSOAP#sumar"/>
             <input>
@@ -87,7 +194,7 @@
                 <soap:body use="literal"/>
             </output>
         </operation>
-        
+
         <operation name="restar">
             <soap:operation soapAction="urn:CalculadoraSOAP#restar"/>
             <input>
@@ -97,11 +204,35 @@
                 <soap:body use="literal"/>
             </output>
         </operation>
+
+        <operation name="multiplicar">
+            <soap:operation soapAction="urn:CalculadoraSOAP#multiplicar"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+        </operation>
+
+        <operation name="dividir">
+            <soap:operation soapAction="urn:CalculadoraSOAP#dividir"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+        </operation>
     </binding>
-    
+
+    <!--
+        service indica donde esta publicado el servicio.
+        Si se mueve la carpeta, esta URL debe actualizarse.
+    -->
     <service name="CalculadoraSOAPService">
         <port name="CalculadoraSOAPPort" binding="tns:CalculadoraSOAPBinding">
-            <soap:address location="http://localhost/daw2servidor/007-Programación de servicios web/002-Estándares y arquitecturas actuales. Formatos de intercambio de datos/002-Ejercicios/calculadora-soap.php"/>
+            <soap:address location="http://localhost/daw2servidor_RCT/daw2servidor_2026/007-Programacion_Servicios_web/002-Estandares_Arquitectura_actuales_formato_intercambio_Datos/calculadora-soap.php"/>
         </port>
     </service>
 </definitions>

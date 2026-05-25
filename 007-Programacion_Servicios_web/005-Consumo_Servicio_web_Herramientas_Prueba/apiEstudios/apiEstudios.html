@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Cliente REST Estudios</title>
+  </head>
+  <body>
+    <!--
+      Cliente de prueba para apiEstudios.php.
+
+      No accede directamente a MySQL. Usa fetch() para llamar a la API REST y
+      muestra la peticion y la respuesta.
+    -->
+
+    <h1>Cliente REST - Estudios</h1>
+
+    <h2>1. Listar estudios</h2>
+
+    <label>País:</label><br />
+    <input type="text" id="paisFiltro" placeholder="Japón" /><br /><br />
+
+    <label>Ciudad:</label><br />
+    <input type="text" id="ciudadFiltro" placeholder="Kioto" /><br /><br />
+
+    <label>Fundado desde:</label><br />
+    <input type="number" id="fundadoDesde" placeholder="1980" /><br /><br />
+
+    <button id="btnListar">GET /estudios</button>
+
+    <hr />
+
+    <h2>2. Consultar estudio por ID</h2>
+    <label>ID:</label><br />
+    <input type="number" id="idConsultar" value="1" /><br /><br />
+    <button id="btnConsultar">GET /estudios/{id}</button>
+
+    <hr />
+
+    <h2>3. Crear estudio</h2>
+
+    <label>Nombre:</label><br />
+    <input type="text" id="nombreCrear" value="Estudio REST" /><br /><br />
+
+    <label>País:</label><br />
+    <input type="text" id="paisCrear" value="España" /><br /><br />
+
+    <label>Ciudad:</label><br />
+    <input type="text" id="ciudadCrear" value="Valencia" /><br /><br />
+
+    <label>Año de fundación:</label><br />
+    <input type="number" id="fundadoCrear" value="2020" /><br /><br />
+
+    <label>Web:</label><br />
+    <input type="text" id="webCrear" value="https://ejemplo.test" /><br /><br />
+
+    <button id="btnCrear">POST /estudios</button>
+
+    <hr />
+
+    <h2>4. Actualizar parcialmente estudio</h2>
+
+    <label>ID:</label><br />
+    <input type="number" id="idPatch" value="1" /><br /><br />
+
+    <label>Nuevo nombre:</label><br />
+    <input type="text" id="nombrePatch" value="Estudio actualizado" /><br /><br />
+
+    <label>Nueva ciudad:</label><br />
+    <input type="text" id="ciudadPatch" value="Madrid" /><br /><br />
+
+    <button id="btnPatch">PATCH /estudios/{id}</button>
+
+    <hr />
+
+    <h2>5. Eliminar estudio</h2>
+    <p>Recomendado: eliminar solo estudios creados durante la prueba.</p>
+
+    <label>ID:</label><br />
+    <input type="number" id="idEliminar" /><br /><br />
+
+    <button id="btnEliminar">DELETE /estudios/{id}</button>
+
+    <hr />
+
+    <h2>Petición realizada</h2>
+    <pre id="peticion"></pre>
+
+    <h2>Respuesta del servidor</h2>
+    <pre id="respuesta"></pre>
+
+    <script>
+      const baseUrl = "apiEstudios.php";
+
+      const peticion = document.getElementById("peticion");
+      const respuesta = document.getElementById("respuesta");
+
+      function mostrarPeticion(metodo, url, body = null) {
+        let texto = metodo + " " + url;
+
+        if (body !== null) {
+          texto += "\n\nBody:\n" + JSON.stringify(body, null, 2);
+        }
+
+        peticion.innerText = texto;
+      }
+
+      async function mostrarRespuesta(resp) {
+        const texto = await resp.text();
+
+        respuesta.innerText =
+          "Código HTTP: " +
+          resp.status +
+          "\n\n" +
+          (texto || "Sin cuerpo de respuesta");
+      }
+
+      // GET /estudios con filtros opcionales.
+      document
+        .getElementById("btnListar")
+        .addEventListener("click", async () => {
+          let url = baseUrl + "/estudios";
+          const parametros = new URLSearchParams();
+
+          const pais = document.getElementById("paisFiltro").value;
+          const ciudad = document.getElementById("ciudadFiltro").value;
+          const fundadoDesde = document.getElementById("fundadoDesde").value;
+
+          if (pais !== "") {
+            parametros.append("pais", pais);
+          }
+
+          if (ciudad !== "") {
+            parametros.append("ciudad", ciudad);
+          }
+
+          if (fundadoDesde !== "") {
+            parametros.append("fundadoDesde", fundadoDesde);
+          }
+
+          if (parametros.toString() !== "") {
+            url += "?" + parametros.toString();
+          }
+
+          mostrarPeticion("GET", url);
+
+          const resp = await fetch(url, {
+            method: "GET",
+            headers: {
+              Accept: "application/json",
+            },
+          });
+
+          await mostrarRespuesta(resp);
+        });
+
+      // GET /estudios/{id}
+      document
+        .getElementById("btnConsultar")
+        .addEventListener("click", async () => {
+          const id = document.getElementById("idConsultar").value;
+          const url = baseUrl + "/estudios/" + encodeURIComponent(id);
+
+          mostrarPeticion("GET", url);
+
+          const resp = await fetch(url, {
+            method: "GET",
+            headers: {
+              Accept: "application/json",
+            },
+          });
+
+          await mostrarRespuesta(resp);
+        });
+
+      // POST /estudios
+      document
+        .getElementById("btnCrear")
+        .addEventListener("click", async () => {
+          const url = baseUrl + "/estudios";
+
+          const body = {
+            nombre: document.getElementById("nombreCrear").value,
+            pais: document.getElementById("paisCrear").value,
+            ciudad: document.getElementById("ciudadCrear").value,
+            fundado_en: parseInt(document.getElementById("fundadoCrear").value),
+            web: document.getElementById("webCrear").value,
+          };
+
+          mostrarPeticion("POST", url, body);
+
+          const resp = await fetch(url, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            body: JSON.stringify(body),
+          });
+
+          await mostrarRespuesta(resp);
+        });
+
+      // PATCH /estudios/{id}
+      document
+        .getElementById("btnPatch")
+        .addEventListener("click", async () => {
+          const id = document.getElementById("idPatch").value;
+          const url = baseUrl + "/estudios/" + encodeURIComponent(id);
+
+          const body = {
+            nombre: document.getElementById("nombrePatch").value,
+            ciudad: document.getElementById("ciudadPatch").value,
+          };
+
+          mostrarPeticion("PATCH", url, body);
+
+          const resp = await fetch(url, {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            body: JSON.stringify(body),
+          });
+
+          await mostrarRespuesta(resp);
+        });
+
+      // DELETE /estudios/{id}
+      document
+        .getElementById("btnEliminar")
+        .addEventListener("click", async () => {
+          const id = document.getElementById("idEliminar").value;
+          const url = baseUrl + "/estudios/" + encodeURIComponent(id);
+
+          mostrarPeticion("DELETE", url);
+
+          const resp = await fetch(url, {
+            method: "DELETE",
+            headers: {
+              Accept: "application/json",
+            },
+          });
+
+          await mostrarRespuesta(resp);
+        });
+    </script>
+  </body>
+</html>

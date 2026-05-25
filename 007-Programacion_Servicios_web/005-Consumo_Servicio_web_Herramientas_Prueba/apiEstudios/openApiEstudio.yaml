@@ -1,0 +1,211 @@
+openapi: 3.0.3
+
+# Documentacion OpenAPI de la API REST de estudios.
+# Este archivo describe la API, no ejecuta codigo.
+
+info:
+  title: API REST Estudios
+  version: 1.0.0
+  description: API REST para consultar, crear, modificar y eliminar estudios de videojuegos.
+
+servers:
+  - url: http://localhost/daw2servidor_RCT/daw2servidor_2026/007-Programacion_Servicios_web/005-Consumo_Servicio_web_Herramientas_Prueba/apiEstudios/apiEstudios.php
+    description: Servidor local XAMPP
+
+paths:
+  /estudios:
+    get:
+      summary: Listar estudios
+      description: Devuelve estudios. Permite filtrar por pais, ciudad y anio minimo de fundacion.
+      parameters:
+        - name: pais
+          in: query
+          required: false
+          schema:
+            type: string
+            example: Japon
+        - name: ciudad
+          in: query
+          required: false
+          schema:
+            type: string
+            example: Kioto
+        - name: fundadoDesde
+          in: query
+          required: false
+          schema:
+            type: integer
+            example: 1980
+      responses:
+        "200":
+          description: Estudios obtenidos correctamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  estudios:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Estudio"
+
+    post:
+      summary: Crear estudio
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EstudioEntrada"
+      responses:
+        "201":
+          description: Estudio creado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Estudio"
+        "400":
+          description: Datos incorrectos.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /estudios/{id}:
+    get:
+      summary: Consultar estudio por ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Estudio encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Estudio"
+        "404":
+          description: Estudio no encontrado.
+
+    patch:
+      summary: Actualizar parcialmente un estudio
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EstudioParcial"
+      responses:
+        "200":
+          description: Estudio actualizado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Estudio"
+
+    delete:
+      summary: Eliminar estudio
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Estudio eliminado. No devuelve cuerpo.
+        "409":
+          description: No se puede eliminar por relaciones con otros datos.
+
+components:
+  schemas:
+    Estudio:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        nombre:
+          type: string
+          example: Nintendo EPD
+        pais:
+          type: string
+          nullable: true
+          example: Japon
+        ciudad:
+          type: string
+          nullable: true
+          example: Kioto
+        fundado_en:
+          type: integer
+          nullable: true
+          example: 1983
+        web:
+          type: string
+          nullable: true
+          example: https://www.nintendo.com
+
+    EstudioEntrada:
+      type: object
+      required:
+        - nombre
+      properties:
+        nombre:
+          type: string
+          example: Estudio de prueba REST
+        pais:
+          type: string
+          nullable: true
+          example: Espana
+        ciudad:
+          type: string
+          nullable: true
+          example: Valencia
+        fundado_en:
+          type: integer
+          nullable: true
+          example: 2020
+        web:
+          type: string
+          nullable: true
+          example: https://ejemplo.test
+
+    EstudioParcial:
+      type: object
+      properties:
+        nombre:
+          type: string
+          example: Nuevo nombre
+        pais:
+          type: string
+          nullable: true
+        ciudad:
+          type: string
+          nullable: true
+        fundado_en:
+          type: integer
+          nullable: true
+        web:
+          type: string
+          nullable: true
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Estudio no encontrado
+        detalle:
+          type: string
+          example: Informacion tecnica opcional

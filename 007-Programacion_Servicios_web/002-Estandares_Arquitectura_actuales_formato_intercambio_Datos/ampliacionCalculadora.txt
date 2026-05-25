@@ -1,0 +1,36 @@
+AMPLIACION DEL EJEMPLO DE CALCULADORA SOAP
+
+Estado: IMPLEMENTADO
+
+Objetivo original:
+
+Ampliar el ejemplo de calculadora con multiplicacion y division.
+
+1. Multiplicacion
+   - Implementada en calculadora-soap.html.
+   - Implementada en calculadora-soap.php.
+   - Declarada en calculadora.wsdl.
+   - Sigue la misma estructura que suma y resta.
+   - Devuelve una respuesta SOAP con una etiqueta <resultado>.
+
+2. Division
+   - Implementada en calculadora-soap.html.
+   - Implementada en calculadora-soap.php.
+   - Declarada en calculadora.wsdl.
+   - Devuelve una respuesta SOAP especial con:
+     - <resultado>
+     - <resto>
+   - Si el segundo numero es 0, devuelve un error SOAP con <soap:Fault>.
+
+Archivos modificados:
+
+- calculadora-soap.html
+- calculadora-soap.php
+- calculadora.wsdl
+
+Pruebas realizadas:
+
+- multiplicar 8 y 3 devuelve resultado 24.
+- dividir 8 entre 3 devuelve resultado 2.6666666666667 y resto 2.
+- dividir 8 entre 0 devuelve un soap:Fault con el mensaje:
+  "No se puede dividir entre 0."
