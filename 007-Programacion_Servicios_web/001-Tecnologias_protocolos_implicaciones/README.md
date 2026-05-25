@@ -45,6 +45,19 @@ tienda.html
 
 ## Funciones reutilizables
 
+Consulta tambien el indice general: `../README.md`. Ahi tienes una tabla mas larga con patrones REST, SOAP, YAML y plantillas copiables.
+
+### Acceso rapido por archivo
+
+| Archivo | Que puedes reutilizar | Para que sirve en otro ejercicio |
+| --- | --- | --- |
+| `conexion_mysql.php` | `obtenerPDO()` | Abrir una conexion segura con MySQL usando PDO. |
+| `servicio_productos.php` | Consulta `SELECT` + respuesta JSON | Crear un servicio que lista registros de una tabla. |
+| `servicio_stock.php` | Validar parametros `GET` | Consultar un dato concreto, por ejemplo stock, disponibilidad o estado. |
+| `servicio_pedidos.php` | Transaccion + descuento de stock | Hacer operaciones que deben completarse juntas: insertar pedido y actualizar stock. |
+| `tienda.html` | `fetch()`, referencias DOM y pintado de resultado | Crear un cliente HTML que consume servicios PHP. |
+| `test_conexion.php` | Prueba rapida de conexion | Comprobar si XAMPP, puerto, usuario, clave y base de datos funcionan. |
+
 ### Conexion PDO
 
 Sirve para reutilizar conexion en cualquier ejercicio con MySQL.

@@ -32,6 +32,29 @@ libros.js
 
 ## Rutas
 
+Consulta tambien el indice general: `../README.md` y `../../README.md`.
+
+## Acceso rapido a funciones reutilizables
+
+| Funcion o patron | Archivo | Para que sirve |
+| --- | --- | --- |
+| `responder()` | `apiRestLibros.php` | Enviar JSON con codigo HTTP. |
+| `leerJSONBody()` | `apiRestLibros.php` | Leer el cuerpo JSON de `POST` y `PATCH`. |
+| `leerLibros()` | `apiRestLibros.php` | Cargar datos desde `libros.json`. |
+| `guardarLibros()` | `apiRestLibros.php` | Guardar cambios en `libros.json`. |
+| Buscar libro por `id` | `apiRestLibros.php` | Localizar un elemento dentro de un array. |
+| Crear ID incremental | `apiRestLibros.php` | Crear registros nuevos sin base de datos. |
+| Cliente `fetch()` | `apiRestLibros.html` | Probar rutas REST desde formulario HTML. |
+| OpenAPI | `openApiLibros.yaml` | Documentar endpoints, parametros y respuestas. |
+
+## Que copiar en otro ejercicio
+
+Este ejercicio es ideal si el examen pide REST pero no pide MySQL. Cambias:
+
+- `libros.json` por `productos.json`, `alumnos.json`, `tareas.json`, etc.
+- Los campos `titulo`, `autor`, `disponible` por los campos del nuevo ejercicio.
+- Las rutas `/libros` por `/productos`, `/alumnos`, `/tareas`, etc.
+
 ```text
 GET    apiRestLibros.php/libros
 GET    apiRestLibros.php/libros/{id}

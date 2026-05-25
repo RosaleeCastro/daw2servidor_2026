@@ -49,6 +49,25 @@ Si se divide entre 0, devuelve `soap:Fault`.
 
 ## Funciones reutilizables
 
+Consulta tambien el indice general: `../README.md`. Ahi tienes las plantillas SOAP completas y comparacion con REST.
+
+### Acceso rapido por archivo
+
+| Archivo | Que puedes reutilizar | Para que sirve en otro ejercicio |
+| --- | --- | --- |
+| `calculadora-soap.php` | `DOMDocument`, `DOMXPath`, `responderSOAP()`, `responderDivisionSOAP()`, `responderFault()` | Crear un servidor SOAP que lee XML, ejecuta operaciones y responde XML. |
+| `calculadora-soap.html` | Construccion de XML SOAP con `fetch()` | Crear un cliente web que envia peticiones SOAP desde JavaScript. |
+| `calculadora.wsdl` | `types`, `message`, `portType`, `binding`, `service` | Documentar oficialmente las operaciones disponibles del servicio SOAP. |
+| `ampliacionCalculadora.txt` | Enunciado de ampliacion | Ver que cambios se anadieron respecto al servicio inicial. |
+
+### Partes que se copian mucho en SOAP
+
+- Leer el XML recibido: `file_get_contents("php://input")`.
+- Cargarlo como XML: `$dom->loadXML($xmlRecibido)`.
+- Buscar nodos sin depender del prefijo: `//*[local-name()='sumar']`.
+- Escapar texto de salida: `htmlspecialchars($texto, ENT_XML1)`.
+- Devolver errores formales: `<soap:Fault>`.
+
 ### Respuesta SOAP simple
 
 ```php

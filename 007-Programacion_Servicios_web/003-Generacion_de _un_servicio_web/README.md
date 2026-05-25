@@ -57,6 +57,28 @@ Devuelve:
 
 ## Funciones reutilizables
 
+Consulta tambien el indice general: `../README.md`. Ahi tienes un resumen completo de patrones reutilizables de todas las carpetas.
+
+### Acceso rapido por archivo
+
+| Archivo | Que puedes reutilizar | Para que sirve en otro ejercicio |
+| --- | --- | --- |
+| `prestamos.php` | Validacion de `Header`, `Body`, token y parametros | Crear servicios SOAP con autenticacion o datos de sesion. |
+| `prestamos.php` | `responderFault()` | Devolver errores SOAP correctos cuando falta token, DNI o codigo. |
+| `prestamos.php` | `responderPrestamoSOAP()` | Responder varios campos dentro de una operacion SOAP. |
+| `prestamos.html` | `DOMParser` y lectura de respuesta XML | Interpretar XML SOAP recibido en el navegador. |
+| `prestamos.wsdl` | Contrato WSDL de la operacion | Describir que pide y que devuelve el servicio. |
+
+### Patron importante para examen
+
+Este ejercicio es util cuando el enunciado diga:
+
+- "validar sesion",
+- "enviar cabecera",
+- "controlar acceso",
+- "devolver error si falta un dato",
+- "interpretar una respuesta SOAP".
+
 ### Validar token SOAP
 
 ```php

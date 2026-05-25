@@ -33,6 +33,38 @@ README.md
 
 ## Rutas
 
+Consulta tambien el indice general: `../README.md` y `../../README.md`.
+
+## Acceso rapido a funciones reutilizables
+
+| Funcion o patron | Archivo | Para que sirve |
+| --- | --- | --- |
+| `responder()` | `apiTareas.php` | Enviar JSON y codigo HTTP desde un unico sitio. |
+| `leerJSONBody()` | `apiTareas.php` | Leer datos enviados por `POST` o `PATCH`. |
+| `obtenerRuta()` | `apiTareas.php` | Leer la ruta REST desde `?ruta=` o desde `PATH_INFO`. Muy util en XAMPP. |
+| `leerTareas()` | `apiTareas.php` | Leer el archivo `tareas.json` y convertirlo a array PHP. |
+| `guardarTareas()` | `apiTareas.php` | Guardar el array PHP otra vez como JSON. |
+| `validarPrioridad()` | `apiTareas.php` | Comprobar que una prioridad sea `baja`, `media` o `alta`. |
+| ID incremental con `array_column()` y `max()` | `apiTareas.php` | Crear ids nuevos sin base de datos. |
+| `construirUrl()` | `gestorTareas.html` | Crear URLs con parametros sin escribir strings a mano. |
+| `URLSearchParams` | `gestorTareas.html` | Anadir filtros como `estado` y `prioridad`. |
+| `openApiTareas.yaml` | `openApiTareas.yaml` | Documentar la API para Swagger/Postman/Insomnia. |
+
+## Que copiar en otro ejercicio
+
+Si el examen pide una API REST sin MySQL, este es el modelo mas rapido:
+
+1. Guardas los datos en un `.json`.
+2. Lees el JSON con `leerTareas()`.
+3. Segun el metodo HTTP haces una accion.
+4. Guardas cambios con `guardarTareas()`.
+5. Respondes siempre con `responder()`.
+
+La funcion `obtenerRuta()` es especialmente reutilizable porque evita problemas cuando Apache/XAMPP no rellena bien `PATH_INFO`. Por eso esta API acepta:
+
+- `apiTareas.php?ruta=/tareas`
+- `apiTareas.php/tareas`
+
 ```text
 GET    apiTareas.php?ruta=/tareas
 GET    apiTareas.php?ruta=/tareas/1

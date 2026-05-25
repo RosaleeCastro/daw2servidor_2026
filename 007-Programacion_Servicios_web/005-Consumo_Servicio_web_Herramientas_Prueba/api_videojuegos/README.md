@@ -34,6 +34,30 @@ README.md
 
 ## Rutas
 
+Consulta tambien el indice general: `../README.md` y `../../README.md`.
+
+## Acceso rapido a funciones reutilizables
+
+| Funcion o patron | Archivo | Para que sirve |
+| --- | --- | --- |
+| `obtenerPDO()` | `apiVideojuegos.php` | Abrir conexion MySQL reutilizable. |
+| `responder()` | `apiVideojuegos.php` | Responder siempre en JSON con codigo HTTP. |
+| `leerJSONBody()` | `apiVideojuegos.php` | Recibir datos de `POST` y `PATCH`. |
+| `buscarVideojuegoPorId()` | `apiVideojuegos.php` | Comprobar si existe un registro antes de consultarlo, editarlo o borrarlo. |
+| Filtros con query string | `apiVideojuegos.php` | Filtrar resultados por `precioMax`, `pegiMax` y `multijugador`. |
+| Consultas preparadas | `apiVideojuegos.php` | Evitar SQL injection y separar SQL de datos. |
+| Cliente REST | `apiVideoJuegos.html` | Probar la API desde navegador. |
+| OpenAPI | `openApiVideojuegos.yaml` | Documentar la API para pruebas externas. |
+
+## Que copiar en otro ejercicio
+
+Este ejercicio es el modelo para una API REST con MySQL. Para adaptarlo:
+
+- cambia la tabla `videojuego` por tu tabla,
+- cambia los campos del `SELECT`, `INSERT` y `UPDATE`,
+- conserva `obtenerPDO()`, `responder()` y `leerJSONBody()`,
+- conserva las consultas preparadas con `prepare()` y `execute()`.
+
 ```text
 GET    apiVideojuegos.php/videojuegos
 GET    apiVideojuegos.php/videojuegos/{id}
