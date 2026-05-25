@@ -1,17 +1,38 @@
 # API REST Videojuegos
 
-Esta carpeta contiene una API REST para trabajar con videojuegos guardados en
-la base de datos MySQL `videojuegos_asir`.
+## Que hace
+
+API REST conectada a MySQL para gestionar videojuegos.
+
+Permite:
+
+- listar videojuegos,
+- filtrar por precio, PEGI y multijugador,
+- consultar por ID,
+- crear videojuego,
+- actualizar parcialmente,
+- eliminar.
+
+## Herramientas
+
+- PHP
+- PDO
+- MySQL
+- HTML
+- JavaScript `fetch()`
+- JSON
+- OpenAPI YAML
 
 ## Archivos
 
-- `apiVideojuegos.php`: servidor REST. Recibe peticiones HTTP, consulta o
-  modifica MySQL y responde JSON.
-- `apiVideoJuegos.html`: cliente web de prueba. Usa `fetch()` para llamar a la
-  API y mostrar la peticion y la respuesta.
-- `openApiVideojuegos.yaml`: contrato/documentacion OpenAPI de la API.
+```text
+apiVideojuegos.php
+apiVideoJuegos.html
+openApiVideojuegos.yaml
+README.md
+```
 
-## Rutas principales
+## Rutas
 
 ```text
 GET    apiVideojuegos.php/videojuegos
@@ -21,19 +42,42 @@ PATCH  apiVideojuegos.php/videojuegos/{id}
 DELETE apiVideojuegos.php/videojuegos/{id}
 ```
 
-## Filtros de listado
+## Filtros
 
 ```text
 apiVideojuegos.php/videojuegos?precioMax=60&pegiMax=18&multijugador=true
 ```
 
-## Flujo
+## Ejemplo de videojuego
+
+```json
+{
+  "titulo": "Juego de prueba REST",
+  "fecha_lanzamiento": "2026-05-10",
+  "pegi": 12,
+  "precio_base": 29.99,
+  "motor": "Motor REST",
+  "es_multijugador": false
+}
+```
+
+## Funcion reutilizable: buscar por ID
+
+```php
+function buscarPorId($pdo, $id) {
+    $stmt = $pdo->prepare("SELECT * FROM tabla WHERE id = :id");
+    $stmt->execute([":id" => $id]);
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+```
+
+## Para examen
+
+Cuando uses MySQL en REST:
 
 ```text
-apiVideoJuegos.html
-  -> fetch()
-  -> apiVideojuegos.php
-  -> MySQL videojuegos_asir
-  -> JSON
-  -> respuesta visible en pantalla
+valida datos
+usa prepare/execute
+devuelve codigo HTTP correcto
+responde JSON
 ```

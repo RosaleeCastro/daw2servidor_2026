@@ -1,0 +1,26 @@
+[
+    {
+        "id": 1,
+        "titulo": "Repasar APIs REST",
+        "descripcion": "Leer ejemplos de libros, videojuegos y estudios.",
+        "completada": false,
+        "prioridad": "alta",
+        "fecha_creacion": "2026-05-25 08:30:39"
+    },
+    {
+        "id": 2,
+        "titulo": "Probar gestor de tareas",
+        "descripcion": "Crear, actualizar y eliminar una tarea desde el cliente HTML.",
+        "completada": false,
+        "prioridad": "media",
+        "fecha_creacion": "2026-05-25 08:30:39"
+    },
+    {
+        "id": 3,
+        "titulo": "Tarea actualizada",
+        "descripcion": "lorem ipsus",
+        "completada": true,
+        "prioridad": "baja",
+        "fecha_creacion": "2026-05-25 08:39:03"
+    }
+]

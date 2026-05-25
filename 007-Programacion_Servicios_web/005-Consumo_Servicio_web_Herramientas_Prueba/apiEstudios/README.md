@@ -1,14 +1,38 @@
 # API REST Estudios
 
-Esta carpeta contiene una API REST para trabajar con la tabla `estudio` de la
-base de datos MySQL `videojuegos_asir`.
+## Que hace
+
+API REST para trabajar con la tabla `estudio` de la base de datos
+`videojuegos_asir`.
+
+Permite:
+
+- listar estudios,
+- filtrar por pais, ciudad y anio de fundacion,
+- consultar por ID,
+- crear,
+- actualizar parcialmente,
+- eliminar.
+
+## Herramientas
+
+- PHP
+- PDO
+- MySQL
+- HTML
+- JavaScript `fetch()`
+- JSON
+- OpenAPI YAML
 
 ## Archivos
 
-- `apiEstudios.php`: servidor REST.
-- `apiEstudios.html`: cliente web de prueba.
-- `openApiEstudio.yaml`: documentacion OpenAPI.
-- `apiEStudios.txt`: enunciado y notas del ejercicio.
+```text
+apiEstudios.php
+apiEstudios.html
+openApiEstudio.yaml
+apiEStudios.txt
+README.md
+```
 
 ## Rutas
 
@@ -26,19 +50,35 @@ DELETE apiEstudios.php/estudios/{id}
 apiEstudios.php/estudios?pais=Japon&ciudad=Kioto&fundadoDesde=1980
 ```
 
-## Campos
+## Ejemplo de estudio
 
-```text
-id
-nombre
-pais
-ciudad
-fundado_en
-web
+```json
+{
+  "id": 1,
+  "nombre": "Larian Studios",
+  "pais": "Belgica",
+  "ciudad": "Ghent",
+  "fundado_en": 1996,
+  "web": "https://larian.com"
+}
 ```
 
-## Probar en navegador
+## Funcion reutilizable: PATCH dinamico
 
-```text
-http://localhost/daw2servidor_RCT/daw2servidor_2026/007-Programacion_Servicios_web/005-Consumo_Servicio_web_Herramientas_Prueba/apiEstudios/apiEstudios.html
+```php
+$campos = [];
+$params = [":id" => $id];
+
+if (isset($data["nombre"])) {
+    $campos[] = "nombre = :nombre";
+    $params[":nombre"] = trim($data["nombre"]);
+}
+
+$sql = "UPDATE tabla SET " . implode(", ", $campos) . " WHERE id = :id";
+$stmt = $pdo->prepare($sql);
+$stmt->execute($params);
 ```
+
+## Para examen
+
+PATCH no tiene que recibir todos los campos. Solo modifica los campos enviados.

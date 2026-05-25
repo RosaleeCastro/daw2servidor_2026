@@ -1,31 +1,54 @@
-# Servicio SOAP de acceso a examen
+# Acceso a examen SOAP
 
-Este ejercicio resuelve el enunciado `accesoExamen.txt`.
+## Que hace
+
+Valida si un alumno puede acceder a un examen.
+
+Regla:
+
+```text
+permitido = edad > 16 y matriculado = true
+```
+
+## Herramientas
+
+- HTML
+- JavaScript
+- PHP
+- SOAP
+- XML
+- WSDL
 
 ## Archivos
 
-- `accesoExamen.html`: cliente web que genera y envia la peticion SOAP.
-- `accesoExamen.php`: servidor SOAP que valida los datos y responde XML.
-- `accesoExamen.wsdl`: contrato formal del servicio.
-
-## Regla del ejercicio
-
-Un alumno puede acceder al examen si:
-
-- tiene mas de 16 anos,
-- esta matriculado.
-
-## Datos que recibe
-
-```xml
-<validarAccesoExamen>
-  <nombre>Ana</nombre>
-  <edad>18</edad>
-  <matriculado>true</matriculado>
-</validarAccesoExamen>
+```text
+accesoExamen.html
+accesoExamen.php
+accesoExamen.wsdl
+README.md
 ```
 
-## Datos que devuelve
+## Peticion SOAP
+
+```xml
+<soap:Envelope>
+  <soap:Header>
+    <clienteInfo>
+      <aplicacion>DAW2</aplicacion>
+      <requestId>EXAM-123</requestId>
+    </clienteInfo>
+  </soap:Header>
+  <soap:Body>
+    <validarAccesoExamen>
+      <nombre>Ana</nombre>
+      <edad>18</edad>
+      <matriculado>true</matriculado>
+    </validarAccesoExamen>
+  </soap:Body>
+</soap:Envelope>
+```
+
+## Respuesta SOAP
 
 ```xml
 <validarAccesoExamenResponse>
@@ -34,8 +57,24 @@ Un alumno puede acceder al examen si:
 </validarAccesoExamenResponse>
 ```
 
-## URL de prueba
+## Validaciones reutilizables
 
-```text
-http://localhost/daw2servidor_RCT/daw2servidor_2026/007-Programacion_Servicios_web/004-Interface_servicio_web/acceso_examen/accesoExamen.html
+```php
+if ($nombre === "") {
+    responderFault("El nombre no puede estar vacio.");
+}
+
+if (!is_numeric($edadTexto)) {
+    responderFault("La edad debe ser numerica.");
+}
+
+if ($matriculadoTexto !== "true" && $matriculadoTexto !== "false") {
+    responderFault("El campo matriculado debe ser true o false.");
+}
 ```
+
+## Para examen
+
+Si falta un campo o es invalido, devuelve `soap:Fault`.
+
+Si todo es valido, devuelve una respuesta normal con `permitido` y `mensaje`.

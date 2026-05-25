@@ -1,0 +1,196 @@
+openapi: 3.0.3
+
+# Documentacion OpenAPI de la API REST Gestor de Tareas.
+# Este archivo describe la API para herramientas como Swagger, Postman o Redoc.
+
+info:
+  title: API REST Gestor de Tareas
+  version: 1.0.0
+  description: API REST para consultar, crear, actualizar y eliminar tareas.
+
+servers:
+  - url: http://localhost/daw2servidor_RCT/daw2servidor_2026/007-Programacion_Servicios_web/005-Consumo_Servicio_web_Herramientas_Prueba/gestorTareas_api/apiTareas.php
+    description: Servidor local XAMPP
+
+paths:
+  /tareas:
+    get:
+      summary: Listar tareas
+      description: Devuelve todas las tareas. Permite filtrar por completada y prioridad.
+      parameters:
+        - name: completada
+          in: query
+          required: false
+          schema:
+            type: boolean
+            example: false
+        - name: prioridad
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [baja, media, alta]
+            example: alta
+      responses:
+        "200":
+          description: Listado obtenido correctamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  tareas:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Tarea"
+        "400":
+          description: Filtros incorrectos.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    post:
+      summary: Crear tarea
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TareaEntrada"
+      responses:
+        "201":
+          description: Tarea creada correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tarea"
+        "400":
+          description: Datos incorrectos.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /tareas/{id}:
+    get:
+      summary: Consultar tarea por ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Tarea encontrada.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tarea"
+        "404":
+          description: Tarea no encontrada.
+
+    patch:
+      summary: Actualizar parcialmente una tarea
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TareaParcial"
+      responses:
+        "200":
+          description: Tarea actualizada correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tarea"
+        "404":
+          description: Tarea no encontrada.
+
+    delete:
+      summary: Eliminar tarea
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Tarea eliminada correctamente. No devuelve cuerpo.
+        "404":
+          description: Tarea no encontrada.
+
+components:
+  schemas:
+    Tarea:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        titulo:
+          type: string
+          example: Repasar APIs REST
+        descripcion:
+          type: string
+          example: Leer documentacion y probar endpoints.
+        completada:
+          type: boolean
+          example: false
+        prioridad:
+          type: string
+          enum: [baja, media, alta]
+          example: alta
+        fecha_creacion:
+          type: string
+          example: "2026-05-25 08:30:00"
+
+    TareaEntrada:
+      type: object
+      required:
+        - titulo
+      properties:
+        titulo:
+          type: string
+          example: Nueva tarea
+        descripcion:
+          type: string
+          example: Descripcion de la tarea
+        completada:
+          type: boolean
+          example: false
+        prioridad:
+          type: string
+          enum: [baja, media, alta]
+          example: media
+
+    TareaParcial:
+      type: object
+      properties:
+        titulo:
+          type: string
+        descripcion:
+          type: string
+        completada:
+          type: boolean
+        prioridad:
+          type: string
+          enum: [baja, media, alta]
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Tarea no encontrada

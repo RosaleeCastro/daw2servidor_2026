@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Cliente REST Gestor de Tareas</title>
+  </head>
+  <body>
+    <!--
+      Cliente de prueba para apiTareas.php.
+
+      Permite consumir la API REST usando fetch() y ver claramente:
+      - peticion realizada,
+      - cuerpo JSON enviado,
+      - codigo HTTP recibido,
+      - respuesta JSON del servidor.
+    -->
+
+    <h1>Cliente REST - Gestor de Tareas</h1>
+
+    <h2>1. Listar tareas</h2>
+
+    <label>Filtrar por completada:</label><br />
+    <select id="filtroCompletada">
+      <option value="">Sin filtro</option>
+      <option value="true">Completadas</option>
+      <option value="false">Pendientes</option>
+    </select>
+    <br /><br />
+
+    <label>Filtrar por prioridad:</label><br />
+    <select id="filtroPrioridad">
+      <option value="">Sin filtro</option>
+      <option value="baja">Baja</option>
+      <option value="media">Media</option>
+      <option value="alta">Alta</option>
+    </select>
+    <br /><br />
+
+    <button id="btnListar">GET /tareas</button>
+
+    <hr />
+
+    <h2>2. Consultar tarea por ID</h2>
+    <label>ID:</label><br />
+    <input type="number" id="idConsultar" value="1" /><br /><br />
+    <button id="btnConsultar">GET /tareas/{id}</button>
+
+    <hr />
+
+    <h2>3. Crear tarea</h2>
+
+    <label>Título:</label><br />
+    <input type="text" id="tituloCrear" value="Nueva tarea REST" /><br /><br />
+
+    <label>Descripción:</label><br />
+    <input
+      type="text"
+      id="descripcionCrear"
+      value="Descripcion de prueba"
+    /><br /><br />
+
+    <label>Prioridad:</label><br />
+    <select id="prioridadCrear">
+      <option value="baja">Baja</option>
+      <option value="media" selected>Media</option>
+      <option value="alta">Alta</option>
+    </select>
+    <br /><br />
+
+    <label>
+      <input type="checkbox" id="completadaCrear" />
+      Completada </label
+    ><br /><br />
+
+    <button id="btnCrear">POST /tareas</button>
+
+    <hr />
+
+    <h2>4. Actualizar parcialmente tarea</h2>
+
+    <label>ID:</label><br />
+    <input type="number" id="idPatch" value="1" /><br /><br />
+
+    <label>Nuevo título:</label><br />
+    <input type="text" id="tituloPatch" value="Tarea actualizada" /><br /><br />
+
+    <label>Nueva prioridad:</label><br />
+    <select id="prioridadPatch">
+      <option value="baja">Baja</option>
+      <option value="media">Media</option>
+      <option value="alta" selected>Alta</option>
+    </select>
+    <br /><br />
+
+    <label>
+      <input type="checkbox" id="completadaPatch" checked />
+      Completada </label
+    ><br /><br />
+
+    <button id="btnPatch">PATCH /tareas/{id}</button>
+
+    <hr />
+
+    <h2>5. Eliminar tarea</h2>
+
+    <label>ID:</label><br />
+    <input type="number" id="idEliminar" /><br /><br />
+
+    <button id="btnEliminar">DELETE /tareas/{id}</button>
+
+    <hr />
+
+    <h2>Petición realizada</h2>
+    <pre id="peticion"></pre>
+
+    <h2>Respuesta del servidor</h2>
+    <pre id="respuesta"></pre>
+
+    <script>
+      const baseUrl = "apiTareas.php";
+
+      /*
+       * Construye URLs compatibles con XAMPP.
+       *
+       * En teoria REST se veria asi:
+       * apiTareas.php/tareas
+       *
+       * Pero en algunos XAMPP PATH_INFO falla. Para evitarlo usamos:
+       * apiTareas.php?ruta=/tareas
+       */
+      function construirUrl(ruta, parametros = null) {
+        let url = baseUrl + "?ruta=" + encodeURIComponent(ruta);
+
+        if (parametros !== null && parametros.toString() !== "") {
+          url += "&" + parametros.toString();
+        }
+
+        return url;
+      }
+
+      const peticion = document.getElementById("peticion");
+      const respuesta = document.getElementById("respuesta");
+
+      function mostrarPeticion(metodo, url, body = null) {
+        let texto = metodo + " " + url;
+
+        if (body !== null) {
+          texto += "\n\nBody:\n" + JSON.stringify(body, null, 2);
+        }
+
+        peticion.innerText = texto;
+      }
+
+      async function mostrarRespuesta(resp) {
+        const texto = await resp.text();
+
+        respuesta.innerText =
+          "Código HTTP: " +
+          resp.status +
+          "\n\n" +
+          (texto || "Sin cuerpo de respuesta");
+      }
+
+      // GET /tareas con filtros opcionales.
+      document
+        .getElementById("btnListar")
+        .addEventListener("click", async () => {
+          const parametros = new URLSearchParams();
+
+          const completada = document.getElementById("filtroCompletada").value;
+          const prioridad = document.getElementById("filtroPrioridad").value;
+
+          if (completada !== "") {
+            parametros.append("completada", completada);
+          }
+
+          if (prioridad !== "") {
+            parametros.append("prioridad", prioridad);
+          }
+
+          const url = construirUrl("/tareas", parametros);
+
+          mostrarPeticion("GET", url);
+
+          const resp = await fetch(url, {
+            method: "GET",
+            headers: {
+              Accept: "application/json",
+            },
+          });
+
+          await mostrarRespuesta(resp);
+        });
+
+      // GET /tareas/{id}
+      document
+        .getElementById("btnConsultar")
+        .addEventListener("click", async () => {
+          const id = document.getElementById("idConsultar").value;
+          const url = construirUrl("/tareas/" + encodeURIComponent(id));
+
+          mostrarPeticion("GET", url);
+
+          const resp = await fetch(url, {
+            method: "GET",
+            headers: {
+              Accept: "application/json",
+            },
+          });
+
+          await mostrarRespuesta(resp);
+        });
+
+      // POST /tareas
+      document
+        .getElementById("btnCrear")
+        .addEventListener("click", async () => {
+          const url = construirUrl("/tareas");
+
+          const body = {
+            titulo: document.getElementById("tituloCrear").value,
+            descripcion: document.getElementById("descripcionCrear").value,
+            completada: document.getElementById("completadaCrear").checked,
+            prioridad: document.getElementById("prioridadCrear").value,
+          };
+
+          mostrarPeticion("POST", url, body);
+
+          const resp = await fetch(url, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            body: JSON.stringify(body),
+          });
+
+          await mostrarRespuesta(resp);
+        });
+
+      // PATCH /tareas/{id}
+      document
+        .getElementById("btnPatch")
+        .addEventListener("click", async () => {
+          const id = document.getElementById("idPatch").value;
+          const url = construirUrl("/tareas/" + encodeURIComponent(id));
+
+          const body = {
+            titulo: document.getElementById("tituloPatch").value,
+            prioridad: document.getElementById("prioridadPatch").value,
+            completada: document.getElementById("completadaPatch").checked,
+          };
+
+          mostrarPeticion("PATCH", url, body);
+
+          const resp = await fetch(url, {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            body: JSON.stringify(body),
+          });
+
+          await mostrarRespuesta(resp);
+        });
+
+      // DELETE /tareas/{id}
+      document
+        .getElementById("btnEliminar")
+        .addEventListener("click", async () => {
+          const id = document.getElementById("idEliminar").value;
+          const url = construirUrl("/tareas/" + encodeURIComponent(id));
+
+          mostrarPeticion("DELETE", url);
+
+          const resp = await fetch(url, {
+            method: "DELETE",
+            headers: {
+              Accept: "application/json",
+            },
+          });
+
+          await mostrarRespuesta(resp);
+        });
+    </script>
+  </body>
+</html>
