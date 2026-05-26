@@ -1,245 +1,393 @@
-# Guia de examen - Generacion dinamica de paginas web interactivas
+# 008 - Generación dinámica de páginas web interactivas
 
-Este README es la chuleta principal de la carpeta `008-generacion_dinamica_paginas_web_interactivas`.
+## ⚡ Idea central
 
-La idea central de esta unidad es:
-
-```text
-El usuario no recarga toda la pagina.
-JavaScript pide datos al servidor.
+```
+El usuario NO recarga la página.
+JavaScript pide datos al servidor con fetch().
 El servidor responde JSON o HTML.
 JavaScript actualiza solo una parte del DOM.
 ```
 
-## Mapa rapido
+---
 
-| Carpeta | Tema | Flujo principal | Formato |
-| --- | --- | --- | --- |
-| `002-generacion_dinamica _paginas_interactivas` | Pagina interactiva con servicios propios | HTML -> fetch -> controlador PHP -> servicio PHP -> JSON | JSON |
-| `003-obtencion_remota_informacion` | PHP consume informacion externa con cURL | HTML -> fetch -> controlador PHP -> cURL -> proveedor externo -> JSON -> HTML | JSON remoto + HTML final |
+## 🗺️ Mapa del tema
 
-## Bloque 1 - Generacion dinamica con fetch
+| Carpeta | Qué hace                                | JS devuelve | PHP devuelve |
+| ------- | --------------------------------------- | ----------- | ------------ |
+| `002`   | PHP con servicios propios y controlador | `.json()`   | JSON         |
+| `003`   | PHP llama a proveedor externo con cURL  | `.text()`   | HTML         |
 
-Usalo cuando el ejercicio diga:
+---
 
-- "cargar datos sin recargar la pagina",
-- "anadir elementos desde un formulario",
-- "mostrar una lista dinamicamente",
-- "consumir un controlador PHP desde JavaScript".
+## ¿Cuándo usar cada una?
 
-Flujo:
+| El enunciado dice                     | Usa |
+| ------------------------------------- | --- |
+| "cargar datos sin recargar"           | 002 |
+| "formulario dinámico"                 | 002 |
+| "controlador que reparte a servicios" | 002 |
+| "consumir servicio externo"           | 003 |
+| "proveedor remoto"                    | 003 |
+| "usar cURL en PHP"                    | 003 |
+| "PHP llama a otro servidor"           | 003 |
 
-```text
+---
+
+## 📁 BLOQUE 1 — 002: Controlador + Servicios propios
+
+### Flujo
+
+```
 cliente.html
-  -> fetch("controlador.php/videojuegos")
-  -> controlador.php detecta ruta y metodo
-  -> servicioVideojuegos.php lee o guarda JSON
-  -> controlador.php responde JSON
-  -> cliente.html pinta el DOM
+  → fetch("controlador.php/videojuegos")
+  → controlador.php lee PATH_INFO → "videojuegos"
+  → busca en $servicios["videojuegos"]
+  → carga servicios/servicioVideojuegos.php
+  → llama servicioVideojuegos($metodo, $datosEntrada)
+  → devuelve ["codigo" => 200, "datos" => [...]]
+  → controlador.php llama responderJson()
+  → cliente.html actualiza el DOM
 ```
 
-Archivos clave:
-
-- `002-.../cliente.html`
-- `002-.../controlador.php`
-- `002-.../servicios/servicioVideojuegos.php`
-- `002-.../servicios/servicioAlumonos.php`
-- `002-.../datos/videojuegos.json`
-- `002-.../datos/alumnos.json`
-
-Funciones reutilizables:
-
-| Funcion o patron | Archivo | Para que sirve |
-| --- | --- | --- |
-| `responderJson($datos, $codigo)` | `002-.../controlador.php` | Responder JSON con codigo HTTP. |
-| Mapa `$servicios` | `002-.../controlador.php` | Enrutar una URL a un archivo y una funcion. |
-| `file_get_contents("php://input")` | `002-.../controlador.php` | Leer JSON enviado por `POST`. |
-| `servicioVideojuegos($metodo, $datosEntrada)` | `002-.../servicios/servicioVideojuegos.php` | Separar la logica del recurso videojuegos. |
-| `servicioAlumnos($metodo, $datosEntrada)` | `002-.../servicios/servicioAlumonos.php` | Separar la logica del recurso alumnos. |
-| `leerJson($archivo)` | `002-.../servicios/servicioVideojuegos.php` | Leer datos desde un archivo `.json`. |
-| `guardarJson($archivo, $datos)` | `002-.../servicios/servicioVideojuegos.php` | Guardar arrays PHP como JSON. |
-| `generarNuevoId($datos)` | `002-.../servicios/servicioVideojuegos.php` | Crear ids incrementales sin base de datos. |
-| `cargarVideojuegos()` | `002-.../cliente.html` | Hacer `GET` y pintar lista. |
-| `anadirVideojuego()` | `002-.../cliente.html` | Hacer `POST` con JSON. |
-| `mostrarMensaje()` | `002-.../cliente.html` | Mostrar errores o confirmaciones. |
-
-## Bloque 2 - Obtencion remota con cURL
-
-Usalo cuando el ejercicio diga:
-
-- "obtener informacion remota",
-- "consumir un proveedor externo",
-- "usar cURL en PHP",
-- "el servidor debe llamar a otro servidor",
-- "transformar JSON remoto en HTML".
-
-Flujo:
-
-```text
-cliente.html
-  -> fetch("servidor/controlador.php?categoria=Rol")
-  -> servidor/controlador.php valida categoria
-  -> construirUrlProveedor("Rol")
-  -> obtenerContenidoRemoto($urlProveedor)
-  -> cURL llama a proveedorExterno/ofertas.php
-  -> proveedorExterno/ofertas.php devuelve JSON
-  -> controlador.php decodifica JSON
-  -> mostrarOfertas($ofertas)
-  -> cliente.html recibe HTML y lo mete en #resultado
-```
-
-Archivos clave:
-
-- `003-.../cliente.html`
-- `003-.../servidor/controlador.php`
-- `003-.../proveedorExterno/ofertas.php`
-
-Funciones reutilizables:
-
-| Funcion o patron | Archivo | Para que sirve |
-| --- | --- | --- |
-| `construirUrlProveedor($categoria)` | `003-.../servidor/controlador.php` | Crear la URL completa del servicio externo. |
-| `obtenerContenidoRemoto($url)` | `003-.../servidor/controlador.php` | Hacer una peticion HTTP con cURL. |
-| `curl_init()` | `003-.../servidor/controlador.php` | Iniciar una peticion cURL. |
-| `curl_setopt()` | `003-.../servidor/controlador.php` | Configurar URL, timeout y retorno. |
-| `curl_exec()` | `003-.../servidor/controlador.php` | Ejecutar la peticion remota. |
-| `curl_error()` | `003-.../servidor/controlador.php` | Detectar errores de conexion. |
-| `curl_getinfo(..., CURLINFO_HTTP_CODE)` | `003-.../servidor/controlador.php` | Saber si el proveedor respondio 200, 404, 500, etc. |
-| `json_decode($contenido, true)` | `003-.../servidor/controlador.php` | Convertir JSON remoto a array PHP. |
-| `mostrarOfertas($ofertas)` | `003-.../servidor/controlador.php` | Transformar datos remotos en HTML. |
-| `mostrarError($mensaje)` | `003-.../servidor/controlador.php` | Mostrar errores al cliente en HTML. |
-| `cargarOfertas()` | `003-.../cliente.html` | Pedir ofertas al servidor y actualizar `#resultado`. |
-
-## Diagrama de flujo de cURL
-
-```text
-[Usuario selecciona categoria]
-              |
-              v
-[cliente.html ejecuta fetch()]
-              |
-              v
-[servidor/controlador.php recibe categoria]
-              |
-              v
-[Valida categoria permitida]
-              |
-              v
-[construirUrlProveedor()]
-              |
-              v
-[curl_init()]
-              |
-              v
-[curl_setopt(): URL, RETURNTRANSFER, TIMEOUT]
-              |
-              v
-[curl_exec()]
-      |                       |
-      v                       v
-[Error de conexion]     [Respuesta recibida]
-      |                       |
-      v                       v
-[mostrarError()]       [curl_getinfo() revisa HTTP]
-                              |
-                    +---------+---------+
-                    |                   |
-                    v                   v
-              [HTTP no 2xx]        [HTTP 2xx]
-                    |                   |
-                    v                   v
-              [mostrarError()]   [json_decode()]
-                                        |
-                              +---------+---------+
-                              |                   |
-                              v                   v
-                         [JSON invalido]     [Array de ofertas]
-                              |                   |
-                              v                   v
-                         [mostrarError()]   [mostrarOfertas()]
-                                                  |
-                                                  v
-                                      [HTML vuelve al cliente]
-                                                  |
-                                                  v
-                                      [cliente actualiza #resultado]
-```
-
-## Plantilla reutilizable de cURL
+### Funciones que van siempre en el controlador
 
 ```php
+<?php
+header("Content-Type: application/json; charset=utf-8");
+
+// ── Mapa de servicios ────────────────────────────────────────────
+// ⚠️ Cambiar: nombres de recursos, archivos y funciones
+$servicios = [
+    "videojuegos" => [
+        "archivo" => "servicios/servicioVideojuegos.php", // ← tu archivo
+        "funcion" => "servicioVideojuegos"                // ← tu función
+    ],
+    "alumnos" => [
+        "archivo" => "servicios/servicioAlumnos.php",
+        "funcion" => "servicioAlumnos"
+    ]
+];
+
+// ── Detectar método y ruta ───────────────────────────────────────
+// ✅ Copiar tal cual
+$metodo = $_SERVER["REQUEST_METHOD"];
+$ruta   = trim($_SERVER["PATH_INFO"] ?? "", "/"); // "videojuegos" o "alumnos"
+
+if ($ruta === "")              responderJson(["error" => "Sin servicio"], 400);
+if (!isset($servicios[$ruta])) responderJson(["error" => "No encontrado"], 404);
+
+// ── Cargar servicio y leer body ──────────────────────────────────
+// ✅ Copiar tal cual
+require_once $servicios[$ruta]["archivo"];
+$funcion      = $servicios[$ruta]["funcion"];
+$entrada      = file_get_contents("php://input");
+$datosEntrada = json_decode($entrada, true) ?? [];
+
+$resultado = $funcion($metodo, $datosEntrada);
+responderJson($resultado["datos"], $resultado["codigo"]);
+
+// ── responderJson ────────────────────────────────────────────────
+// ✅ Copiar tal cual
+function responderJson($datos, $codigo = 200) {
+    http_response_code($codigo);
+    echo json_encode($datos, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+    exit;
+}
+?>
+```
+
+### Funciones que van siempre en cada servicio
+
+```php
+<?php
+// ⚠️ Cambiar: nombre función, archivo JSON y campos
+function servicioVideojuegos($metodo, $datosEntrada) {
+    $archivo = "datos/videojuegos.json"; // ← cambiar
+
+    if ($metodo === "GET")  return consultarVideojuegos($archivo);
+    if ($metodo === "POST") return añadirVideojuego($archivo, $datosEntrada);
+
+    return ["codigo" => 405, "datos" => ["error" => "Método no permitido"]];
+}
+
+// ── leerJson / guardarJson / generarNuevoId ──────────────────────
+// ✅ Copiar tal cual en cualquier servicio sin MySQL
+function leerJson($archivo) {
+    if (!file_exists($archivo)) return [];
+    return json_decode(file_get_contents($archivo), true) ?? [];
+}
+
+function guardarJson($archivo, $datos) {
+    file_put_contents($archivo, json_encode($datos, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+}
+
+function generarNuevoId($datos) {
+    $mayorId = 0;
+    foreach ($datos as $elemento) {
+        if ($elemento["id"] > $mayorId) $mayorId = $elemento["id"];
+    }
+    return $mayorId + 1; // equivale a AUTO_INCREMENT sin MySQL
+}
+?>
+```
+
+### Cliente JS — GET y POST
+
+```javascript
+const API_VIDEOJUEGOS = "controlador.php/videojuegos"; // ⚠️ cambiar recurso
+
+// GET — cargar y pintar
+function cargarVideojuegos() {
+  limpiarMensaje(mensajeVideojuegos);
+  fetch(API_VIDEOJUEGOS)
+    .then(function (r) {
+      return r.json();
+    })
+    .then(function (datos) {
+      mostrarVideojuegos(datos);
+    })
+    .catch(function () {
+      mostrarMensaje(mensajeVideojuegos, "Error al cargar", "error");
+    });
+}
+
+// POST — enviar formulario
+function añadirVideojuego() {
+  const titulo = document.getElementById("tituloVideojuego").value; // ⚠️ cambiar id
+  const genero = document.getElementById("generoVideojuego").value; // ⚠️ cambiar id
+  limpiarMensaje(mensajeVideojuegos);
+
+  fetch(API_VIDEOJUEGOS, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ titulo: titulo, genero: genero }), // ⚠️ cambiar campos
+  })
+    .then(function (r) {
+      // ✅ patrón que no cambia — mezcla código HTTP y datos
+      return r.json().then(function (d) {
+        return { codigo: r.status, datos: d };
+      });
+    })
+    .then(function (res) {
+      if (res.codigo === 201) {
+        mostrarMensaje(mensajeVideojuegos, res.datos.mensaje, "ok");
+        formVideojuego.reset(); // ⚠️ cambiar variable form
+        cargarVideojuegos(); // ⚠️ cambiar función cargar
+      } else {
+        mostrarMensaje(mensajeVideojuegos, res.datos.error, "error");
+      }
+    });
+}
+
+// Pintar lista en el DOM
+function mostrarVideojuegos(lista) {
+  listadoVideojuegos.innerHTML = ""; // ⚠️ cambiar variable contenedor
+  if (lista.length === 0) {
+    listadoVideojuegos.innerHTML = "<p>No hay datos.</p>";
+    return;
+  }
+  const ul = document.createElement("ul");
+  lista.forEach(function (v) {
+    const li = document.createElement("li");
+    li.textContent = v.id + " - " + v.titulo + " (" + v.genero + ")"; // ⚠️ cambiar campos
+    ul.appendChild(li);
+  });
+  listadoVideojuegos.appendChild(ul); // ⚠️ cambiar variable contenedor
+}
+
+// ✅ Copiar tal cual
+function mostrarMensaje(elemento, texto, tipo) {
+  elemento.textContent = texto;
+  elemento.className = tipo;
+}
+function limpiarMensaje(elemento) {
+  elemento.textContent = "";
+  elemento.className = "";
+}
+```
+
+### ⚠️ Error típico de examen
+
+```
+El archivo se llama:          servicioAlumonos.php   ← typo
+El controlador referencia:    servicioAlumnos.php    ← distinto
+→ el servicio no carga
+```
+
+---
+
+## 📁 BLOQUE 2 — 003: cURL con proveedor externo
+
+### Flujo
+
+```
+cliente.html
+  → fetch("servidor/controlador.php?categoria=Rol")
+  → controlador.php valida $_GET["categoria"]
+  → construirUrlProveedor("Rol")
+  → obtenerContenidoRemoto($url) ← cURL aquí
+  → proveedor devuelve JSON
+  → json_decode() → array PHP
+  → mostrarOfertas() → genera HTML
+  → cliente.html mete HTML en #resultado con innerHTML
+```
+
+### ⭐ Funciones que van SIEMPRE con cURL
+
+```php
+// ⭐ obtenerContenidoRemoto() — ✅ Copiar tal cual
+// Para qué: hace la petición HTTP desde PHP a otra URL
+// Devuelve: ["contenido" => "...", "error" => ""] o ["contenido" => "", "error" => "msg"]
 function obtenerContenidoRemoto($url) {
     if (!function_exists("curl_init")) {
-        return [
-            "contenido" => "",
-            "error" => "La extension cURL no esta activada."
-        ];
+        return ["contenido" => "", "error" => "cURL no está activado en PHP."];
     }
 
     $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);            // URL a llamar
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // guarda respuesta como string
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);    // máximo 5s para conectar
+    curl_setopt($ch, CURLOPT_TIMEOUT, 10);          // máximo 10s total
 
-    curl_setopt($ch, CURLOPT_URL, $url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-
-    $contenido = curl_exec($ch);
-    $error = curl_error($ch);
+    $contenido  = curl_exec($ch);
+    $error      = curl_error($ch);
     $codigoHttp = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
     if ($contenido === false || $error !== "") {
         return ["contenido" => "", "error" => $error];
     }
-
     if ($codigoHttp < 200 || $codigoHttp >= 300) {
-        return [
-            "contenido" => "",
-            "error" => "Codigo HTTP no valido: " . $codigoHttp
-        ];
+        return ["contenido" => "", "error" => "HTTP " . $codigoHttp];
     }
 
     return ["contenido" => $contenido, "error" => ""];
 }
+
+// ⭐ construirUrlProveedor() — ⚠️ Cambiar ruta del proveedor y parámetro
+// Para qué: construye la URL absoluta del proveedor con protocolo y host automáticos
+// Devuelve: "http://localhost/carpeta/proveedorExterno/ofertas.php?categoria=Rol"
+function construirUrlProveedor($categoria) {
+    $protocolo = "http";
+    if (!empty($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] !== "off") $protocolo = "https";
+
+    $host = $_SERVER["HTTP_HOST"];
+
+    $carpeta = dirname(dirname($_SERVER["SCRIPT_NAME"]));
+    $partes  = explode("/", trim($carpeta, "/"));
+    $ruta    = "";
+    foreach ($partes as $parte) {
+        $ruta .= "/" . rawurlencode($parte); // rawurlencode evita problemas con tildes
+    }
+
+    $url = $protocolo . "://" . $host . $ruta . "/proveedorExterno/ofertas.php"; // ⚠️ cambiar ruta
+
+    if ($categoria !== "") {
+        $url .= "?categoria=" . urlencode($categoria); // ⚠️ cambiar parámetro
+    }
+
+    return $url;
+}
+
+// ⭐ mostrarError() — ✅ Copiar tal cual
+// Para qué: devuelve HTML de error cuando cURL falla
+// Se consume: en cada punto de fallo del controlador, siempre con exit
+function mostrarError($mensaje) {
+    echo '<p class="error">' . htmlspecialchars($mensaje) . '</p>';
+}
 ```
 
-## Preguntas tipicas de examen
+### Controlador completo con los 5 puntos de error
 
-### Que diferencia hay entre `fetch()` y `cURL`?
+```php
+<?php
+// servidor/controlador.php
+header("Content-Type: text/html; charset=utf-8"); // ← HTML no JSON
 
-`fetch()` se ejecuta en el navegador con JavaScript.
+$categoria = $_GET["categoria"] ?? "";
+$permitidas = ["", "Rol", "Carreras", "Aventura", "Construcción"]; // ⚠️ cambiar
+if (!in_array($categoria, $permitidas, true)) $categoria = "";
 
-`cURL` se ejecuta en el servidor con PHP.
+// Punto 1 — construir URL
+$urlProveedor    = construirUrlProveedor($categoria);
 
-### Por que usar PHP con cURL en vez de llamar directamente al proveedor desde JS?
+// Punto 2 — llamar con cURL
+$respuestaRemota = obtenerContenidoRemoto($urlProveedor);
+if ($respuestaRemota["error"] !== "") {
+    mostrarError("No se pudo conectar con el proveedor remoto."); exit;
+}
 
-Porque el servidor puede:
+// Punto 3 — decodificar JSON
+$ofertas = json_decode($respuestaRemota["contenido"], true);
+if (!is_array($ofertas)) {
+    mostrarError("El proveedor no devolvió JSON válido."); exit;
+}
 
-- ocultar URLs internas o claves,
-- validar parametros antes de llamar al proveedor,
-- controlar errores,
-- transformar JSON externo en HTML o en otro JSON,
-- evitar algunos problemas de CORS,
-- centralizar la comunicacion con servicios externos.
+// Punto 4 — comprobar resultados
+if (count($ofertas) === 0) {
+    echo '<p class="mensaje">No hay ofertas para esa categoría.</p>'; exit;
+}
 
-### Que devuelve cada capa?
-
-```text
-proveedorExterno/ofertas.php       -> JSON
-servidor/controlador.php           -> HTML
-cliente.html                       -> pinta ese HTML en pantalla
+// Punto 5 — generar HTML
+mostrarOfertas($ofertas);
+?>
 ```
 
-## Chuleta rapida para adaptar
+### Cliente JS — fetch que espera HTML
 
-Para crear otro ejercicio con cURL:
+```javascript
+// ⚠️ Cambiar: URL base, parámetro, variable select y variable contenedor
+async function cargarOfertas() {
+  const categoria = selectCategoria.value; // ⚠️ cambiar variable
 
-1. Crea un `cliente.html` con formulario.
-2. En JS usa `fetch("servidor/controlador.php?...")`.
-3. En PHP valida los parametros recibidos por `$_GET`.
-4. Construye la URL remota.
-5. Llama a `obtenerContenidoRemoto($url)`.
-6. Decodifica JSON con `json_decode()`.
-7. Comprueba que sea array.
-8. Genera HTML o JSON de respuesta.
-9. En JS mete la respuesta en el DOM.
+  const parametros = new URLSearchParams();
+  parametros.append("categoria", categoria); // ⚠️ cambiar parámetro
+  const url = URL_OFERTAS + "?" + parametros.toString();
 
+  resultado.innerHTML = '<p class="cargando">Cargando...</p>'; // ⚠️ cambiar variable
+
+  try {
+    const respuesta = await fetch(url);
+    if (!respuesta.ok) throw new Error("Error en el servidor");
+
+    // ✅ .text() NO .json() — el controlador devuelve HTML
+    const html = await respuesta.text();
+    resultado.innerHTML = html; // ⚠️ cambiar variable contenedor
+  } catch (error) {
+    resultado.innerHTML =
+      '<p class="error">No se pudieron cargar las ofertas.</p>';
+  }
+}
+```
+
+---
+
+## ⚔️ 002 vs 003 — diferencias clave
+
+|                       | 002 Controlador + servicios | 003 cURL proveedor externo        |
+| --------------------- | --------------------------- | --------------------------------- |
+| ¿Quién llama a quién? | JS → PHP → servicio propio  | JS → PHP → proveedor externo      |
+| Datos                 | Archivo `.json` local       | Otro servidor PHP                 |
+| PHP devuelve          | JSON                        | HTML                              |
+| JS lee respuesta      | `.json()`                   | `.text()`                         |
+| Función clave         | mapa `$servicios[]`         | `obtenerContenidoRemoto()`        |
+| Error en JS           | `res.datos.error`           | `innerHTML = '<p class="error">'` |
+
+---
+
+## 🧠 Resumen mental para el examen
+
+| Pregunta                                             | Respuesta                                                    |
+| ---------------------------------------------------- | ------------------------------------------------------------ |
+| ¿Qué hace el controlador en 002?                     | Lee ruta y método, carga el servicio correcto, devuelve JSON |
+| ¿Cómo lee PHP la ruta en 002?                        | `trim($_SERVER["PATH_INFO"], "/")`                           |
+| ¿Qué devuelve siempre un servicio en 002?            | `["codigo" => 2xx/4xx, "datos" => [...]]`                    |
+| ¿Cómo genero ID sin MySQL?                           | `generarNuevoId()` → busca el mayor y suma 1                 |
+| Error típico 002                                     | Nombre del archivo distinto al del controlador               |
+| ¿Qué es cURL?                                        | Extensión PHP para hacer peticiones HTTP desde el servidor   |
+| ¿Por qué no fetch directo al proveedor?              | CORS, ocultar URL, validar, transformar datos                |
+| ¿Cómo compruebo si cURL está disponible?             | `function_exists("curl_init")`                               |
+| ¿Qué hace `CURLOPT_RETURNTRANSFER`?                  | Guarda la respuesta como string, no la imprime               |
+| ¿Por qué `.text()` y no `.json()` en 003?            | Porque el controlador devuelve HTML                          |
+| ¿Por qué `htmlspecialchars()` en `mostrarOfertas()`? | El contenido viene de fuera, puede ser peligroso             |
+| ¿Por qué `rawurlencode()` en la URL?                 | Evita que tildes y espacios rompan la URL                    |

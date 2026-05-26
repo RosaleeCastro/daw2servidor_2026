@@ -144,6 +144,7 @@
         anadirAlumno();
       });
 
+      //-------------------------------------------------------------------------------------
       // GET controlador.php/videojuegos -> devuelve un array JSON de videojuegos.
       function cargarVideojuegos() {
         limpiarMensaje(mensajeVideojuegos);
@@ -235,6 +236,7 @@
 
       // POST controlador.php/alumnos -> envia nombre y curso al servicio de alumnos.
       function anadirAlumno() {
+        // 1. Recoge los valores del formulario
         const nombre = document.getElementById("nombreAlumno").value;
         const curso = document.getElementById("cursoAlumno").value;
 

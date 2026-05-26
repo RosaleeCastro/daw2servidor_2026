@@ -153,13 +153,14 @@
       });
 
       async function cargarOfertas() {
-        const categoria = selectCategoria.value;
-
+        const categoria = selectCategoria.value;//valor del select
+        
         const parametros = new URLSearchParams();
+        
         parametros.append("categoria", categoria);
 
         const url = URL_OFERTAS + "?" + parametros.toString();
-
+        // → "servidor/controlador.php?categoria=Rol"
         resultado.innerHTML =
           '<p class="cargando">Cargando ofertas externas...</p>';
 
