@@ -135,6 +135,7 @@ if ($recurso !== "tareas") {
     ]);
 }
 
+//aqui trae los datos del json
 $tareas = leerTareas($archivoDatos);
 
 // ----------------------------------------------------

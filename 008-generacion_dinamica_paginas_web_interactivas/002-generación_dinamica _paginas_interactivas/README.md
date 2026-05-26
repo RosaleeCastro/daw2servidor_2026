@@ -26,7 +26,7 @@ cliente.html
 | `cliente.html` | Interfaz del usuario. Tiene formularios, botones y JavaScript. |
 | `controlador.php` | Punto de entrada de la API. Decide que servicio usar. |
 | `servicios/servicioVideojuegos.php` | Logica de consultar y anadir videojuegos. |
-| `servicios/servicioAlumonos.php` | Logica de consultar y anadir alumnos. |
+| `servicios/servicioAlumnos.php` | Logica de consultar y anadir alumnos. |
 | `datos/videojuegos.json` | Datos persistidos de videojuegos. |
 | `datos/alumnos.json` | Datos persistidos de alumnos. |
 
@@ -165,10 +165,3 @@ Funciones importantes:
 5. En `cliente.html` crea una constante con la URL.
 6. Usa `fetch()` para pedir o enviar datos.
 7. Pinta la respuesta en el DOM.
-
-## Aviso util
-
-En esta carpeta aparece el archivo `servicioAlumonos.php`, pero el controlador referencia `servicioAlumnos.php`.
-
-Si el servicio de alumnos falla al cargar, revisa ese nombre de archivo. Es el tipico error de examen: archivo escrito distinto a como se importa.
-
