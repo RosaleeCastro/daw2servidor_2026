@@ -34,25 +34,30 @@
   <body>
     <h1>Cliente REST para controlador PHP</h1>
 
+    <!--
+      BLOQUE DE VIDEOJUEGOS
+      Esta parte solo define la interfaz: un boton para consultar,
+      un formulario para crear y un contenedor donde JavaScript pintara la lista.
+    -->
     <section>
       <h2>Videojuegos</h2>
 
       <button id="btnCargarVideojuegos">Cargar videojuegos</button>
 
-      <h3>Añadir videojuego</h3>
+      <h3>A&ntilde;adir videojuego</h3>
 
       <form id="formVideojuego">
         <div>
-          <label for="tituloVideojuego">Título:</label><br />
+          <label for="tituloVideojuego">T&iacute;tulo:</label><br />
           <input type="text" id="tituloVideojuego" name="titulo" />
         </div>
 
         <div>
-          <label for="generoVideojuego">Género:</label><br />
+          <label for="generoVideojuego">G&eacute;nero:</label><br />
           <input type="text" id="generoVideojuego" name="genero" />
         </div>
 
-        <button type="submit">Añadir videojuego</button>
+        <button type="submit">A&ntilde;adir videojuego</button>
       </form>
 
       <h3>Listado de videojuegos</h3>
@@ -61,12 +66,16 @@
       <p id="mensajeVideojuegos"></p>
     </section>
 
+    <!--
+      BLOQUE DE ALUMNOS
+      Sigue la misma estructura que videojuegos, pero llama al servicio de alumnos.
+    -->
     <section>
       <h2>Alumnos</h2>
 
       <button id="btnCargarAlumnos">Cargar alumnos</button>
 
-      <h3>Añadir alumno</h3>
+      <h3>A&ntilde;adir alumno</h3>
 
       <form id="formAlumno">
         <div>
@@ -79,7 +88,7 @@
           <input type="text" id="cursoAlumno" name="curso" />
         </div>
 
-        <button type="submit">Añadir alumno</button>
+        <button type="submit">A&ntilde;adir alumno</button>
       </form>
 
       <h3>Listado de alumnos</h3>
@@ -89,36 +98,53 @@
     </section>
 
     <script>
+      /*
+        FLUJO GENERAL DEL CLIENTE:
+        1. El usuario pulsa un boton o envia un formulario.
+        2. JavaScript llama a controlador.php con fetch().
+        3. El controlador PHP responde con JSON.
+        4. JavaScript convierte ese JSON en HTML y lo muestra en la pagina.
+      */
+
+      // URLs de la API. La parte final indica al controlador que servicio usar.
       const API_VIDEOJUEGOS = "controlador.php/videojuegos";
       const API_ALUMNOS = "controlador.php/alumnos";
 
+      // Referencias a botones: sirven para detectar clicks del usuario.
       const btnCargarVideojuegos = document.getElementById(
         "btnCargarVideojuegos",
       );
       const btnCargarAlumnos = document.getElementById("btnCargarAlumnos");
 
+      // Referencias a formularios: sirven para capturar los datos antes de enviarlos.
       const formVideojuego = document.getElementById("formVideojuego");
       const formAlumno = document.getElementById("formAlumno");
 
+      // Contenedores donde se renderizan las listas recibidas del servidor.
       const listadoVideojuegos = document.getElementById("listadoVideojuegos");
       const listadoAlumnos = document.getElementById("listadoAlumnos");
 
+      // Parrafos usados para mostrar mensajes de error o de exito.
       const mensajeVideojuegos = document.getElementById("mensajeVideojuegos");
       const mensajeAlumnos = document.getElementById("mensajeAlumnos");
 
+      // Eventos de lectura: al hacer click, se pide el listado al servidor.
       btnCargarVideojuegos.addEventListener("click", cargarVideojuegos);
       btnCargarAlumnos.addEventListener("click", cargarAlumnos);
 
+      // Evento de alta de videojuego: evita recargar la pagina y envia JSON.
       formVideojuego.addEventListener("submit", function (event) {
         event.preventDefault();
-        añadirVideojuego();
+        anadirVideojuego();
       });
 
+      // Evento de alta de alumno: funciona igual que el formulario de videojuegos.
       formAlumno.addEventListener("submit", function (event) {
         event.preventDefault();
-        añadirAlumno();
+        anadirAlumno();
       });
 
+      // GET controlador.php/videojuegos -> devuelve un array JSON de videojuegos.
       function cargarVideojuegos() {
         limpiarMensaje(mensajeVideojuegos);
 
@@ -139,6 +165,7 @@
           });
       }
 
+      // GET controlador.php/alumnos -> devuelve un array JSON de alumnos.
       function cargarAlumnos() {
         limpiarMensaje(mensajeAlumnos);
 
@@ -155,7 +182,8 @@
           });
       }
 
-      function añadirVideojuego() {
+      // POST controlador.php/videojuegos -> envia los datos del formulario en JSON.
+      function anadirVideojuego() {
         const titulo = document.getElementById("tituloVideojuego").value;
         const genero = document.getElementById("generoVideojuego").value;
 
@@ -166,12 +194,14 @@
           headers: {
             "Content-Type": "application/json",
           },
+          // El servidor lee este JSON desde php://input.
           body: JSON.stringify({
             titulo: titulo,
             genero: genero,
           }),
         })
           .then(function (respuesta) {
+            // Guardamos tanto el codigo HTTP como el cuerpo JSON de la respuesta.
             return respuesta.json().then(function (datos) {
               return {
                 codigo: respuesta.status,
@@ -183,6 +213,7 @@
             if (resultado.codigo === 201) {
               mostrarMensaje(mensajeVideojuegos, resultado.datos.mensaje, "ok");
               formVideojuego.reset();
+              // Despues de crear, se vuelve a pedir la lista para verla actualizada.
               cargarVideojuegos();
             } else {
               mostrarMensaje(
@@ -195,14 +226,15 @@
           .catch(function (error) {
             mostrarMensaje(
               mensajeVideojuegos,
-              "Error al añadir videojuego",
+              "Error al anadir videojuego",
               "error",
             );
             console.log(error);
           });
       }
 
-      function añadirAlumno() {
+      // POST controlador.php/alumnos -> envia nombre y curso al servicio de alumnos.
+      function anadirAlumno() {
         const nombre = document.getElementById("nombreAlumno").value;
         const curso = document.getElementById("cursoAlumno").value;
 
@@ -213,12 +245,14 @@
           headers: {
             "Content-Type": "application/json",
           },
+          // Este objeto debe coincidir con las claves que valida servicioAlumnos.php.
           body: JSON.stringify({
             nombre: nombre,
             curso: curso,
           }),
         })
           .then(function (respuesta) {
+            // Igual que antes: mezclamos estado HTTP y datos JSON en un mismo objeto.
             return respuesta.json().then(function (datos) {
               return {
                 codigo: respuesta.status,
@@ -230,17 +264,19 @@
             if (resultado.codigo === 201) {
               mostrarMensaje(mensajeAlumnos, resultado.datos.mensaje, "ok");
               formAlumno.reset();
+              // Recarga la lista para incluir el alumno recien guardado.
               cargarAlumnos();
             } else {
               mostrarMensaje(mensajeAlumnos, resultado.datos.error, "error");
             }
           })
           .catch(function (error) {
-            mostrarMensaje(mensajeAlumnos, "Error al añadir alumno", "error");
+            mostrarMensaje(mensajeAlumnos, "Error al anadir alumno", "error");
             console.log(error);
           });
       }
 
+      // Recibe un array de videojuegos y lo convierte en elementos <li>.
       function mostrarVideojuegos(videojuegos) {
         listadoVideojuegos.innerHTML = "";
 
@@ -267,6 +303,7 @@
         listadoVideojuegos.appendChild(ul);
       }
 
+      // Recibe un array de alumnos y lo convierte en una lista visible en el DOM.
       function mostrarAlumnos(alumnos) {
         listadoAlumnos.innerHTML = "";
 
@@ -287,11 +324,13 @@
         listadoAlumnos.appendChild(ul);
       }
 
+      // Muestra texto en un parrafo y usa la clase CSS para colorearlo.
       function mostrarMensaje(elemento, texto, tipo) {
         elemento.textContent = texto;
         elemento.className = tipo;
       }
 
+      // Limpia mensajes anteriores antes de hacer una nueva peticion.
       function limpiarMensaje(elemento) {
         elemento.textContent = "";
         elemento.className = "";

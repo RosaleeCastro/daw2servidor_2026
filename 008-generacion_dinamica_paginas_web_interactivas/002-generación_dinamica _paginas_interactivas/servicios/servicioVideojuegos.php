@@ -1,26 +1,47 @@
 <?php
 
+/*
+    SERVICIO DE VIDEOJUEGOS
+
+    Este archivo contiene la logica concreta de videojuegos.
+    El controlador lo carga cuando la ruta es:
+
+    controlador.php/videojuegos
+
+    Flujo:
+    controlador.php
+      -> servicioVideojuegos($metodo, $datosEntrada)
+      -> GET consulta datos/videojuegos.json
+      -> POST valida, anade y guarda en datos/videojuegos.json
+      -> devuelve codigo HTTP y datos al controlador
+*/
+
 function servicioVideojuegos($metodo, $datosEntrada) {
+    // Archivo donde se guardan los videojuegos.
     $archivo = "datos/videojuegos.json";
 
+    // GET /videojuegos: consultar todos los videojuegos.
     if ($metodo === "GET") {
         return consultarVideojuegos($archivo);
     }
 
+    // POST /videojuegos: crear un videojuego nuevo con los datos recibidos.
     if ($metodo === "POST") {
-        return añadirVideojuego($archivo, $datosEntrada);
+        return anadirVideojuego($archivo, $datosEntrada);
     }
 
+    // Cualquier otro metodo no esta permitido en este ejercicio.
     return [
         "codigo" => 405,
         "datos" => [
-            "error" => "Método no permitido para videojuegos"
+            "error" => "Metodo no permitido para videojuegos"
         ]
     ];
 }
 
 
 function consultarVideojuegos($archivo) {
+    // Lee el JSON y lo devuelve al controlador.
     $videojuegos = leerJson($archivo);
 
     return [
@@ -30,12 +51,20 @@ function consultarVideojuegos($archivo) {
 }
 
 
-function añadirVideojuego($archivo, $datosEntrada) {
+function anadirVideojuego($archivo, $datosEntrada) {
+    /*
+        Validacion de entrada.
+        El cliente debe enviar:
+        {
+            "titulo": "...",
+            "genero": "..."
+        }
+    */
     if (!isset($datosEntrada["titulo"]) || trim($datosEntrada["titulo"]) === "") {
         return [
             "codigo" => 400,
             "datos" => [
-                "error" => "El título del videojuego es obligatorio"
+                "error" => "El titulo del videojuego es obligatorio"
             ]
         ];
     }
@@ -44,27 +73,32 @@ function añadirVideojuego($archivo, $datosEntrada) {
         return [
             "codigo" => 400,
             "datos" => [
-                "error" => "El género del videojuego es obligatorio"
+                "error" => "El genero del videojuego es obligatorio"
             ]
         ];
     }
 
+    // Recuperamos los videojuegos actuales.
     $videojuegos = leerJson($archivo);
 
+    // Creamos el nuevo videojuego con un id consecutivo.
     $nuevoVideojuego = [
         "id" => generarNuevoId($videojuegos),
         "titulo" => $datosEntrada["titulo"],
         "genero" => $datosEntrada["genero"]
     ];
 
+    // Anadimos el nuevo registro al array.
     $videojuegos[] = $nuevoVideojuego;
 
+    // Guardamos el array completo otra vez en el archivo JSON.
     guardarJson($archivo, $videojuegos);
 
+    // 201 significa "creado correctamente".
     return [
         "codigo" => 201,
         "datos" => [
-            "mensaje" => "Videojuego añadido correctamente",
+            "mensaje" => "Videojuego anadido correctamente",
             "videojuego" => $nuevoVideojuego
         ]
     ];
@@ -72,6 +106,7 @@ function añadirVideojuego($archivo, $datosEntrada) {
 
 
 function leerJson($archivo) {
+    // Si el archivo todavia no existe, el servicio responde con lista vacia.
     if (!file_exists($archivo)) {
         return [];
     }
@@ -79,6 +114,7 @@ function leerJson($archivo) {
     $contenido = file_get_contents($archivo);
     $datos = json_decode($contenido, true);
 
+    // Si el JSON no se puede convertir a array, evitamos romper la respuesta.
     if ($datos === null) {
         return [];
     }
@@ -88,6 +124,7 @@ function leerJson($archivo) {
 
 
 function guardarJson($archivo, $datos) {
+    // Convierte el array PHP a JSON legible y lo escribe en disco.
     file_put_contents(
         $archivo,
         json_encode($datos, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
@@ -96,6 +133,10 @@ function guardarJson($archivo, $datos) {
 
 
 function generarNuevoId($datos) {
+    /*
+        Busca el id mas alto y devuelve el siguiente.
+        Si el JSON esta vacio, el primer id sera 1.
+    */
     $mayorId = 0;
 
     foreach ($datos as $elemento) {

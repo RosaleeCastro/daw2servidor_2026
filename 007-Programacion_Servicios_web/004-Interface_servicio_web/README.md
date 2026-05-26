@@ -3,12 +3,12 @@
 ## ⚡ Qué añade esta carpeta respecto a 003
 
 ```
-003 → Header con token    → AUTENTICAR (obligatorio, si falla = Fault)
-004 → Header con requestId → TRAZAR    (opcional, si no llega funciona igual)
+003 → Header con token     → AUTENTICAR  (obligatorio, si falla = Fault)
+004 → Header con requestId → TRAZAR      (opcional,   si no llega funciona igual)
 ```
 
 > El `requestId` es como un **número de ticket**: identifica la petición  
-> y el servidor lo devuelve en la respuesta para que sepas a qué petición corresponde.
+> y el servidor lo devuelve en la respuesta para saber a qué petición corresponde.
 
 ---
 
@@ -34,19 +34,11 @@
     </soap:Header>
 
     <soap:Body>
-        <!-- envioPostal -->
-        <calcularEnvio>
+        <calcularEnvio>          <!-- o validarAccesoExamen -->
             <peso>2.5</peso>
             <zona>peninsula</zona>
             <urgente>true</urgente>
         </calcularEnvio>
-
-        <!-- O acceso_examen -->
-        <validarAccesoExamen>
-            <nombre>Ana</nombre>
-            <edad>18</edad>
-            <matriculado>true</matriculado>
-        </validarAccesoExamen>
     </soap:Body>
 
 </soap:Envelope>
@@ -54,39 +46,35 @@
 
 ---
 
-## 🌐 1. Cliente JS — patrón común a los dos ejercicios
+## 🌐 1. Cliente JS — leer la respuesta XML
+
+Tienes **dos formas** de buscar nodos en la respuesta. Ambas funcionan en tus ejercicios:
+
+### Opción A — `getElementsByTagName` (simple, la tuya)
 
 ```javascript
-// Generar ID único para cada petición
-const requestId = "REQ-" + Date.now();
+// ✅ Funciona cuando tu PHP devuelve XML limpio sin prefijos
+const precioNode = xml.getElementsByTagName("precio")[0];
+const plazoNode = xml.getElementsByTagName("plazoDias")[0];
+const requestIdNode = xml.getElementsByTagName("requestId")[0];
+const fault = xml.getElementsByTagName("faultstring")[0];
 
-const xmlSOAP = `<?xml version="1.0" encoding="UTF-8"?>
-<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
-    <soap:Header>
-        <clienteInfo>
-            <aplicacion>DAW2</aplicacion>
-            <requestId>${requestId}</requestId>
-        </clienteInfo>
-    </soap:Header>
-    <soap:Body>
-        <calcularEnvio>
-            <peso>${peso}</peso>
-            <zona>${zona}</zona>
-            <urgente>${urgente}</urgente>
-        </calcularEnvio>
-    </soap:Body>
-</soap:Envelope>`;
+if (fault) {
+  console.log("Error: " + fault.textContent);
+} else {
+  console.log("Precio: " + precioNode.textContent + " €");
+  console.log("Plazo: " + plazoNode.textContent + " días");
+  if (requestIdNode) {
+    console.log("RequestId: " + requestIdNode.textContent);
+  }
+}
+```
 
-const respuesta = await fetch("envioPostal.php", {
-  method: "POST",
-  headers: { "Content-Type": "text/xml; charset=utf-8", Accept: "text/xml" },
-  body: xmlSOAP,
-});
+### Opción B — `evaluate` con `local-name()` (robusta, alternativa)
 
-const texto = await respuesta.text();
-const xml = new DOMParser().parseFromString(texto, "text/xml");
-
-// Buscar nodos por local-name() → siempre más robusto con namespaces
+```javascript
+// ✅ Funciona también cuando el XML tiene prefijos como <tns:precio>
+// Úsala si ves namespaces en la respuesta o el enunciado lo pide
 const buscar = (nombre) =>
   xml.evaluate(
     "//*[local-name()='" + nombre + "']",
@@ -97,18 +85,26 @@ const buscar = (nombre) =>
   ).singleNodeValue;
 
 const fault = buscar("faultstring");
-const precio = buscar("precio");
-const plazo = buscar("plazoDias");
-const requestIdR = buscar("requestId"); // el servidor lo devuelve
+const precioNode = buscar("precio");
+const plazoNode = buscar("plazoDias");
+const requestIdR = buscar("requestId");
 
 if (fault) {
   console.log("Error: " + fault.textContent);
 } else {
-  console.log("Precio: " + precio.textContent + " €");
-  console.log("Plazo: " + plazo.textContent + " días");
+  console.log("Precio: " + precioNode.textContent + " €");
+  console.log("Plazo: " + plazoNode.textContent + " días");
   console.log("RequestId: " + requestIdR.textContent);
 }
 ```
+
+### ¿Cuándo usar cada una?
+
+| Situación                                | Usa                                          |
+| ---------------------------------------- | -------------------------------------------- |
+| Tu propio PHP en XAMPP (sin prefijos)    | `getElementsByTagName` ✅ más simple         |
+| XML de servicio externo con `tns:precio` | `evaluate` con `local-name()` ✅ más robusto |
+| Examen con tu propio código              | `getElementsByTagName` es suficiente         |
 
 ---
 
@@ -118,7 +114,6 @@ if (fault) {
 <?php
 header("Content-Type: text/xml; charset=utf-8");
 
-// ── Leer XML (igual que siempre) ─────────────────────────────────
 if ($_SERVER["REQUEST_METHOD"] !== "POST") responderFault("Solo POST.");
 
 $xmlRecibido = file_get_contents("php://input");
@@ -133,17 +128,15 @@ $xpath->registerNamespace("soap", "http://schemas.xmlsoap.org/soap/envelope/");
 
 // ── NUEVO EN 004: leer requestId del Header (OPCIONAL) ───────────
 $header    = $xpath->query("//soap:Header")->item(0);
-$requestId = "";                              // valor por defecto si no llega
+$requestId = "";                               // valor por defecto si no llega
 
-if ($header instanceof DOMElement) {          // ← solo si existe el Header
+if ($header instanceof DOMElement) {           // solo entra si existe el Header
     $node = $header->getElementsByTagName("requestId")->item(0);
-    if ($node) {
-        $requestId = trim($node->textContent);
-    }
+    if ($node) $requestId = trim($node->textContent);
 }
-// No llamamos a responderFault() si no hay Header → es opcional
+// ⚠️ NO llamamos responderFault() → el Header es opcional en 004
 
-// ── Leer Body y operación (igual que siempre) ────────────────────
+// ── Leer Body (igual que siempre) ────────────────────────────────
 $body = $xpath->query("//soap:Body")->item(0);
 if (!$body) responderFault("No se encontró el Body.");
 
@@ -157,22 +150,26 @@ if (!$operacionNode) responderFault("No hay operación en el Body.");
 
 ---
 
-## 📮 Ejercicio 1 — Envío Postal: lógica de cálculo
+## 📮 Ejercicio 1 — Envío Postal
+
+### Leer parámetros y calcular
 
 ```php
 $peso   = (float)$operacionNode->getElementsByTagName("peso")->item(0)->textContent;
 $zona   = trim($operacionNode->getElementsByTagName("zona")->item(0)->textContent);
-$urgTxt = strtolower(trim($operacionNode->getElementsByTagName("urgente")->item(0)->textContent));
+$urgTxt = strtolower(trim(
+    $operacionNode->getElementsByTagName("urgente")->item(0)->textContent
+));
 
 // Validaciones
-if (!is_numeric($peso) || $peso <= 0) responderFault("Peso no válido.");
-$zonasOK = ["peninsula", "baleares", "canarias", "internacional"];
-if (!in_array($zona, $zonasOK, true))  responderFault("Zona no válida.");
-if ($urgTxt !== "true" && $urgTxt !== "false") responderFault("urgente debe ser true o false.");
+if (!is_numeric($peso) || $peso <= 0)          responderFault("Peso no válido.");
+if (!in_array($zona, ["peninsula","baleares","canarias","internacional"], true))
+                                                responderFault("Zona no válida.");
+if ($urgTxt !== "true" && $urgTxt !== "false") responderFault("urgente: true o false.");
 
 $urgente = ($urgTxt === "true");
 
-// Precio base y plazo según zona
+// Tabla de precios base y plazos por zona
 $tabla = [
     "peninsula"     => ["base" => 4.50,  "plazo" => 3],
     "baleares"      => ["base" => 7.00,  "plazo" => 4],
@@ -188,7 +185,7 @@ if      ($peso <= 1) $recargoPeso = 0;
 elseif  ($peso <= 5) $recargoPeso = 2.50;
 else                 $recargoPeso = 5.00;
 
-// Recargo urgente + reducción de plazo
+// Recargo urgente y reducción de plazo
 $recargoUrgente = $urgente ? 6.00 : 0;
 $plazoFinal     = $urgente ? max(1, $plazoBase - 2) : $plazoBase;
 $precioFinal    = number_format($precioBase + $recargoPeso + $recargoUrgente, 2, ".", "");
@@ -196,7 +193,7 @@ $precioFinal    = number_format($precioBase + $recargoPeso + $recargoUrgente, 2,
 responderEnvioSOAP($precioFinal, $plazoFinal, $zona, $urgente, $requestId);
 ```
 
-### Función de respuesta — devuelve el requestId en el Header
+### Función respuesta — devuelve requestId en el Header
 
 ```php
 function responderEnvioSOAP($precio, $dias, $zona, $urgente, $requestId = "") {
@@ -207,14 +204,14 @@ function responderEnvioSOAP($precio, $dias, $zona, $urgente, $requestId = "") {
        . '<soap:Header>'
        . '<respuestaInfo>'
        . '<servidor>EnvioPostalPHP</servidor>'
-       . '<requestId>' . $rId . '</requestId>'   // ← devolvemos el mismo ID
+       . '<requestId>' . $rId . '</requestId>'    // ← devuelve el mismo ID
        . '</respuestaInfo>'
        . '</soap:Header>'
        . '<soap:Body><calcularEnvioResponse>'
-       . '<precio>'    . $precio              . '</precio>'
-       . '<plazoDias>' . $dias                . '</plazoDias>'
-       . '<zona>'      . $z                   . '</zona>'
-       . '<urgente>'   . ($urgente ? 'true' : 'false') . '</urgente>'
+       . '<precio>'    . $precio                        . '</precio>'
+       . '<plazoDias>' . $dias                          . '</plazoDias>'
+       . '<zona>'      . $z                             . '</zona>'
+       . '<urgente>'   . ($urgente ? 'true' : 'false')  . '</urgente>'
        . '</calcularEnvioResponse></soap:Body>'
        . '</soap:Envelope>';
     exit;
@@ -223,25 +220,27 @@ function responderEnvioSOAP($precio, $dias, $zona, $urgente, $requestId = "") {
 
 ---
 
-## 🎓 Ejercicio 2 — Acceso Examen: validaciones y regla de negocio
+## 🎓 Ejercicio 2 — Acceso Examen
+
+### Validaciones y regla de negocio
 
 ```php
-$nombre       = trim($operacionNode->getElementsByTagName("nombre")->item(0)->textContent);
-$edadTexto    = trim($operacionNode->getElementsByTagName("edad")->item(0)->textContent);
-$matricTxt    = strtolower(trim(
+$nombre    = trim($operacionNode->getElementsByTagName("nombre")->item(0)->textContent);
+$edadTexto = trim($operacionNode->getElementsByTagName("edad")->item(0)->textContent);
+$matricTxt = strtolower(trim(
     $operacionNode->getElementsByTagName("matriculado")->item(0)->textContent
 ));
 
-// Validar cada campo antes de usarlo
-if ($nombre === "")                              responderFault("Nombre vacío.");
-if (!is_numeric($edadTexto))                     responderFault("Edad no numérica.");
+// Validar cada campo
+if ($nombre === "")                                    responderFault("Nombre vacío.");
+if (!is_numeric($edadTexto))                           responderFault("Edad no numérica.");
 $edad = (int)$edadTexto;
-if ($edad < 0)                                   responderFault("Edad negativa.");
-if ($matricTxt !== "true" && $matricTxt !== "false") responderFault("matriculado: true o false.");
+if ($edad < 0)                                         responderFault("Edad negativa.");
+if ($matricTxt !== "true" && $matricTxt !== "false")   responderFault("matriculado: true o false.");
 
 $matriculado = ($matricTxt === "true");
 
-// ── Regla de negocio: edad > 16 AND matriculado ──────────────────
+// ── Regla: edad > 16 AND matriculado = true ──────────────────────
 if ($edad <= 16 && !$matriculado) {
     responderAccesoSOAP(false, "$nombre: necesita más de 16 años y estar matriculado.", $requestId);
 }
@@ -254,7 +253,7 @@ if (!$matriculado) {
 responderAccesoSOAP(true, "$nombre puede acceder al examen.", $requestId);
 ```
 
-### Función de respuesta
+### Función respuesta
 
 ```php
 function responderAccesoSOAP($permitido, $mensaje, $requestId = "") {
@@ -277,12 +276,10 @@ function responderAccesoSOAP($permitido, $mensaje, $requestId = "") {
 
 ---
 
-## 📄 WSDL — qué tiene de especial en 004
-
-El WSDL de acceso_examen declara el Header como **opcional** en el input:
+## 📄 WSDL — las 3 piezas del Header (igual que 003)
 
 ```xml
-<!-- types: estructura del Header -->
+<!-- 1. types: estructura del Header -->
 <xsd:element name="clienteInfo">
     <xsd:complexType>
         <xsd:sequence>
@@ -292,13 +289,13 @@ El WSDL de acceso_examen declara el Header como **opcional** en el input:
     </xsd:complexType>
 </xsd:element>
 
-<!-- message: nombrar el Header -->
+<!-- 2. message: nombrar el Header -->
 <message name="ClienteInfoHeader">
     <part name="clienteInfo" element="tns:clienteInfo"/>
 </message>
 
-<!-- binding: añadir soap:header al input -->
-<operation name="validarAccesoExamen">
+<!-- 3. binding: añadir soap:header al input -->
+<operation name="calcularEnvio">
     <input>
         <soap:header message="tns:ClienteInfoHeader" part="clienteInfo" use="literal"/>
         <soap:body use="literal"/>
@@ -313,23 +310,25 @@ El WSDL de acceso_examen declara el Header como **opcional** en el input:
 
 ## ⚔️ Comparativa final de las 3 carpetas SOAP
 
-|                    | 002 Calculadora | 003 Préstamos          | 004 Envío/Acceso         |
-| ------------------ | --------------- | ---------------------- | ------------------------ |
-| Header             | ❌ No           | ✅ Token (obligatorio) | ✅ requestId (opcional)  |
-| ¿Falla sin Header? | —               | ✅ Sí → Fault          | ❌ No, sigue             |
-| ¿Devuelve Header?  | ❌ No           | ❌ No                  | ✅ Sí, con requestId     |
-| Campos respuesta   | 1 `resultado`   | 3 campos               | 2-4 campos               |
-| Lógica             | Matemática      | Arrays fijos           | Cálculo / Regla booleana |
+|                    | 002 Calculadora        | 003 Préstamos          | 004 Envío / Acceso       |
+| ------------------ | ---------------------- | ---------------------- | ------------------------ |
+| Header             | ❌ No                  | ✅ Token (obligatorio) | ✅ requestId (opcional)  |
+| ¿Falla sin Header? | —                      | ✅ Sí → Fault          | ❌ No, sigue funcionando |
+| ¿Devuelve Header?  | ❌ No                  | ❌ No                  | ✅ Sí, con requestId     |
+| Campos respuesta   | 1 `resultado`          | 3 campos               | 2–4 campos               |
+| Lógica             | Matemática             | Arrays fijos           | Cálculo / Regla booleana |
+| Leer nodos JS      | `getElementsByTagName` | `getElementsByTagName` | Ambas sirven             |
 
 ---
 
 ## 🧠 Resumen mental para el examen
 
-| Pregunta                                       | Respuesta                                               |
-| ---------------------------------------------- | ------------------------------------------------------- |
-| ¿Cómo genero un requestId en JS?               | `"REQ-" + Date.now()`                                   |
-| ¿Cómo leo el Header sin que falle si no llega? | `if ($header instanceof DOMElement)`                    |
-| ¿Cómo valido un booleano SOAP?                 | `strtolower($texto) === "true"` / `=== "false"`         |
-| ¿Cómo devuelvo el requestId al cliente?        | En `<soap:Header>` de la respuesta                      |
-| ¿Diferencia Header 003 vs 004?                 | 003 autentica (falla si no llega), 004 traza (opcional) |
-| Regla acceso examen                            | `edad > 16 AND matriculado === true`                    |
+| Pregunta                                       | Respuesta                                                                          |
+| ---------------------------------------------- | ---------------------------------------------------------------------------------- |
+| ¿Cómo genero un requestId en JS?               | `"REQ-" + Date.now()`                                                              |
+| ¿Cómo leo el Header sin que falle si no llega? | `if ($header instanceof DOMElement)`                                               |
+| ¿Cómo valido un booleano en SOAP?              | `strtolower($txt) === "true"` o `=== "false"`                                      |
+| ¿Cómo devuelvo el requestId al cliente?        | En `<soap:Header>` de la respuesta PHP                                             |
+| Diferencia Header 003 vs 004                   | 003 autentica (Fault si no llega), 004 traza (opcional)                            |
+| Regla acceso examen                            | `edad > 16 AND matriculado === true`                                               |
+| `getElementsByTagName` vs `local-name()`       | Ambas van en tus ejercicios; `local-name()` es más robusta con namespaces externos |
